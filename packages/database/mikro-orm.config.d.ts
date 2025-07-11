@@ -1,0 +1,2 @@
+declare const _default: import("node_modules/@mikro-orm/core").Options<import("node_modules/@mikro-orm/postgresql").PostgreSqlDriver, import("node_modules/@mikro-orm/postgresql").EntityManager<import("node_modules/@mikro-orm/postgresql").PostgreSqlDriver> & import("node_modules/@mikro-orm/core").EntityManager<import("node_modules/@mikro-orm/core").IDatabaseDriver<import("node_modules/@mikro-orm/core").Connection>>>;
+export default _default;

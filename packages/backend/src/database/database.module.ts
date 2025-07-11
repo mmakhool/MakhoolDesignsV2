@@ -1,4 +1,5 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { PostgreSqlDriver } from '@mikro-orm/postgresql';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BlogPost, ContactSubmission, Project, Review } from '../entities';
@@ -12,7 +13,7 @@ import { BlogPost, ContactSubmission, Project, Review } from '../entities';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         // Database connection
-        type: 'postgresql',
+        driver: PostgreSqlDriver,
         host: configService.get('DATABASE_HOST', 'localhost'),
         port: configService.get('DATABASE_PORT', 5432),
         user: configService.get('DATABASE_USERNAME', 'postgres'),
@@ -34,7 +35,7 @@ import { BlogPost, ContactSubmission, Project, Review } from '../entities';
           dropTables: true,
           safe: false,
           snapshot: true,
-          emit: 'ts',
+          emit: 'ts'
         },
 
         // Development settings
@@ -45,13 +46,13 @@ import { BlogPost, ContactSubmission, Project, Review } from '../entities';
         schemaGenerator: {
           disableForeignKeys: false,
           createForeignKeyConstraints: true,
-          ignoreSchema: [],
+          ignoreSchema: []
         },
 
         // Connection pool
         pool: {
           min: 2,
-          max: 10,
+          max: 10
         },
 
         // Timezone settings
@@ -59,14 +60,14 @@ import { BlogPost, ContactSubmission, Project, Review } from '../entities';
 
         // Serialization
         serialization: {
-          includePrimaryKeys: true,
-        },
+          includePrimaryKeys: true
+        }
       }),
-      inject: [ConfigService],
+      inject: [ConfigService]
     }),
     // Register entities for dependency injection
-    MikroOrmModule.forFeature([BlogPost, ContactSubmission, Project, Review]),
+    MikroOrmModule.forFeature([BlogPost, ContactSubmission, Project, Review])
   ],
-  exports: [MikroOrmModule],
+  exports: [MikroOrmModule]
 })
 export class DatabaseModule {}

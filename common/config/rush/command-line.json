@@ -16,7 +16,14 @@
       "name": "start",
       "summary": "Start all development servers",
       "description": "Starts the backend API server and frontend development server concurrently",
-      "shellCommand": "concurrently \"cd packages/backend && npm run start:dev\" \"cd packages/web && npm run dev\" --names \"API,WEB\" --prefix-colors \"blue,green\""
+      "shellCommand": "concurrently \"cd packages/backend && npm run dev:backend\" \"cd packages/web && npm run dev\" --names \"API,WEB\" --prefix-colors \"blue,green\""
+    },
+    {
+      "commandKind": "global",
+      "name": "kill-ports",
+      "summary": "Clean up development server ports",
+      "description": "Kills processes running on common development ports (3001, 5173, 5174, 5175, 5176)",
+      "shellCommand": "cd packages/backend && npm run kill-port"
     },
     {
       "commandKind": "global", 

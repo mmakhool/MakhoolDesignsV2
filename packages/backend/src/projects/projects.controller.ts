@@ -20,7 +20,7 @@ export class ProjectsController {
         category: 'web-development',
         featured: true,
         createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-15')
       },
       {
         id: '2',
@@ -32,7 +32,7 @@ export class ProjectsController {
         category: 'web-development',
         featured: true,
         createdAt: new Date('2024-02-20'),
-        updatedAt: new Date('2024-02-20'),
+        updatedAt: new Date('2024-02-20')
       },
       {
         id: '3',
@@ -44,8 +44,8 @@ export class ProjectsController {
         category: 'mobile-development',
         featured: false,
         createdAt: new Date('2024-03-10'),
-        updatedAt: new Date('2024-03-10'),
-      },
+        updatedAt: new Date('2024-03-10')
+      }
     ];
   }
 

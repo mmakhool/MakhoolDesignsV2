@@ -13,8 +13,8 @@ export class ContactService {
       secure: false,
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
+        pass: process.env.SMTP_PASS
+      }
     });
   }
 
@@ -31,18 +31,18 @@ export class ContactService {
           <p><strong>Subject:</strong> ${contactData.subject}</p>
           <p><strong>Message:</strong></p>
           <p>${contactData.message}</p>
-        `,
+        `
       });
 
       return {
         success: true,
-        message: 'Contact form submitted successfully',
+        message: 'Contact form submitted successfully'
       };
     } catch (error) {
       console.error('Email sending failed:', error);
       return {
         success: false,
-        message: 'Failed to send message. Please try again later.',
+        message: 'Failed to send message. Please try again later.'
       };
     }
   }

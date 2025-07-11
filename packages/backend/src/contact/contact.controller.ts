@@ -12,7 +12,7 @@ export class ContactController {
   @ApiOperation({ summary: 'Submit contact form' })
   @ApiResponse({
     status: 201,
-    description: 'Contact form submitted successfully',
+    description: 'Contact form submitted successfully'
   })
   @ApiResponse({ status: 400, description: 'Invalid form data' })
   async submitContact(@Body() contactData: ContactFormData) {

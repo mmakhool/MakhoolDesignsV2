@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, PrimaryKey, Property, Index, Unique, Enum } from '@mikro-orm/core';
+import { BaseEntity, Entity, Enum, Index, PrimaryKey, Property, Unique } from '@mikro-orm/core';
 import { v4 as uuid } from 'uuid';
 
 export enum ProjectCategory {

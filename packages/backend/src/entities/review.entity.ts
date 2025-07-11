@@ -1,4 +1,4 @@
-import { Entity, PrimaryKey, Property, Index, Check } from '@mikro-orm/core';
+import { Check, Entity, Index, PrimaryKey, Property } from '@mikro-orm/core';
 
 @Entity({ tableName: 'reviews' })
 export class Review {

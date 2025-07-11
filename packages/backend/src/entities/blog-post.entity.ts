@@ -1,4 +1,4 @@
-import { Entity, PrimaryKey, Property, Index, Unique } from '@mikro-orm/core';
+import { Entity, Index, PrimaryKey, Property, Unique } from '@mikro-orm/core';
 
 @Entity({ tableName: 'blog_posts' })
 export class BlogPost {

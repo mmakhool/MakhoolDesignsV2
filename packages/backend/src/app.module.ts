@@ -3,20 +3,20 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ContactModule } from './contact/contact.module';
-import { ProjectsModule } from './projects/projects.module';
 import { DatabaseModule } from './database/database.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env']
     }),
     DatabaseModule,
     ContactModule,
-    ProjectsModule,
+    ProjectsModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService]
 })
 export class AppModule {}

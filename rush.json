@@ -351,6 +351,10 @@
     {
       "packageName": "@makhool-designs/database",
       "projectFolder": "packages/database"
+    },
+    {
+      "packageName": "@makhool-designs/ui",
+      "projectFolder": "packages/ui"
     }
     // {
     //   /**

@@ -1,9 +1,10 @@
-import { Entity, PrimaryKey, Property, Index } from '@mikro-orm/core';
+import { Entity, Index, PrimaryKey, Property } from '@mikro-orm/core';
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity({ tableName: 'contact_submissions' })
 export class ContactSubmission {
   @PrimaryKey({ type: 'uuid' })
-  id!: string;
+  id: string = uuidv4();
 
   @Property({ type: 'timestamptz' })
   createdAt: Date = new Date();

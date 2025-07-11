@@ -1,17 +1,18 @@
-import { Entity, PrimaryKey, Property, Index, Enum } from '@mikro-orm/core';
+import { Entity, Enum, Index, PrimaryKey, Property } from '@mikro-orm/core';
+import { v4 as uuidv4 } from 'uuid';
 
 export enum ProjectCategory {
   WEB_DEVELOPMENT = 'web-development',
   MOBILE_DEVELOPMENT = 'mobile-development',
   DESIGN = 'design',
   CONSULTING = 'consulting',
-  THREE_D_PRINTING = '3d-printing',
+  THREE_D_PRINTING = '3d-printing'
 }
 
 @Entity({ tableName: 'projects' })
 export class Project {
   @PrimaryKey({ type: 'uuid' })
-  id!: string;
+  id: string = uuidv4();
 
   @Property({ type: 'timestamptz' })
   createdAt: Date = new Date();
