@@ -1,0 +1,104 @@
+{
+  "folders": [
+    {
+      "name": "✨ root",
+      "path": "."
+    },
+    {
+      "name": "🚀 @makhool-designs/web",
+      "path": "packages/web"
+    },
+    {
+      "name": "🚀 @makhool-designs/backend",
+      "path": "packages/backend"
+    },
+    {
+      "name": "📦 @makhool-designs/shared",
+      "path": "packages/shared"
+    },
+    {
+      "name": "📦 @makhool-designs/database",
+      "path": "packages/database"
+    }
+  ],
+  "settings": {
+    "files.associations": {
+      "rush.json": "jsonc",
+      "**/common/**/*.json": "jsonc"
+    },
+    "files.exclude": {
+      "dist": true,
+      "node_modules": true,
+      "**/public/assets": true,
+      "**/temp": true,
+      "common/temp": true,
+      "**/rush-logs": true
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "*.ts": "${capture}.js",
+      "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+      "*.jsx": "${capture}.js",
+      "*.tsx": "${capture}.ts",
+      "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml",
+      "tsconfig.json": "tsconfig.*.json",
+      "vite.config.ts": "vite.config.js",
+      "tailwind.config.js": "tailwind.config.ts"
+    },
+    "sqltools.connections": [
+      {
+        "previewLimit": 50,
+        "server": "localhost",
+        "port": 5432,
+        "driver": "PostgreSQL",
+        "name": "makhool-designs-dev",
+        "database": "makhool_designs",
+        "username": "postgres",
+        "password": "postgres"
+      }
+    ],
+    "typescript.tsdk": "🚀 @makhool-designs/backend/node_modules/typescript/lib",
+    "typescript.preferences.useAliasesForRenames": false,
+    "typescript.workspaceSymbols.scope": "currentProject",
+    "eslint.workingDirectories": [
+      "packages/web",
+      "packages/backend"
+    ],
+    "rush.enabled": true,
+    "rush.rushJsonFolder": ".",
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/temp": true,
+      "common/temp": true,
+      "**/rush-logs": true,
+      "**/coverage": true
+    },
+    "typescript.suggest.autoImports": true,
+    "typescript.suggest.includePackageJsonAutoImports": "auto",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "files.watcherExclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/temp": true,
+      "common/temp": true,
+      "**/rush-logs": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "bradlc.vscode-tailwindcss",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "ms-vscode.vscode-json",
+      "GitHub.copilot",
+      "GitHub.copilot-chat",
+      "ms-vscode.rushstack",
+      "ms-vscode.vscode-docker"
+    ]
+  }
+}
