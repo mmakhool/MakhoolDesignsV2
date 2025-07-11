@@ -17,7 +17,15 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "migration:create": "mikro-orm migration:create --config ../database/mikro-orm.config.ts",
+    "migration:up": "mikro-orm migration:up --config ../database/mikro-orm.config.ts",
+    "migration:down": "mikro-orm migration:down --config ../database/mikro-orm.config.ts",
+    "migration:list": "mikro-orm migration:list --config ../database/mikro-orm.config.ts",
+    "migration:check": "mikro-orm migration:check --config ../database/mikro-orm.config.ts",
+    "schema:create": "mikro-orm schema:create --config ../database/mikro-orm.config.ts",
+    "schema:drop": "mikro-orm schema:drop --config ../database/mikro-orm.config.ts",
+    "schema:update": "mikro-orm schema:update --config ../database/mikro-orm.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -31,6 +39,11 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "nodemailer": "^6.9.8",
+    "uuid": "^9.0.0",
+    "@mikro-orm/core": "^6.1.12",
+    "@mikro-orm/nestjs": "^6.0.2",
+    "@mikro-orm/postgresql": "^6.1.12",
+    "@mikro-orm/migrations": "^6.1.12",
     "@makhool-designs/shared": "workspace:*",
     "@makhool-designs/database": "workspace:*"
   },
@@ -47,6 +60,7 @@
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
     "@types/nodemailer": "^6.4.14",
+    "@types/uuid": "^9.0.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "rimraf": "^5.0.5",
