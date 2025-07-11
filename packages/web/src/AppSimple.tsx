@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { ApiProvider } from './providers/ApiProvider';
-import { ContactPage } from './pages/ContactPage';
+import { ContactPageSimple } from './pages/ContactPageSimple';
 import './App.css';
 
-// Temporary constants until shared package import is fixed
+// Simple constants since we're having import issues
 const APP_NAME = 'MakhoolDesigns';
 const NAVIGATION_ITEMS = [
   { label: 'Home', href: '/' },
@@ -161,7 +160,7 @@ const AppContent: React.FC = () => {
         <Route path="/about" element={<PlaceholderPage title="About Us" />} />
         <Route path="/projects" element={<PlaceholderPage title="Our Projects" />} />
         <Route path="/reviews" element={<PlaceholderPage title="Client Reviews" />} />
-        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/contact" element={<ContactPageSimple />} />
       </Routes>
       
       <Footer />
@@ -171,11 +170,9 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <ApiProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </ApiProvider>
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

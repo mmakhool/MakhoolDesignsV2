@@ -11,6 +11,27 @@
    * "rush my-global-command --help".
    */
   "commands": [
+    {
+      "commandKind": "global",
+      "name": "start",
+      "summary": "Start all development servers",
+      "description": "Starts the backend API server and frontend development server concurrently",
+      "shellCommand": "concurrently \"cd packages/backend && npm run start:dev\" \"cd packages/web && npm run dev\" --names \"API,WEB\" --prefix-colors \"blue,green\""
+    },
+    {
+      "commandKind": "global", 
+      "name": "db:up",
+      "summary": "Start the PostgreSQL database",
+      "description": "Starts the PostgreSQL database using Docker Compose",
+      "shellCommand": "docker-compose up -d"
+    },
+    {
+      "commandKind": "global",
+      "name": "db:down", 
+      "summary": "Stop the PostgreSQL database",
+      "description": "Stops the PostgreSQL database Docker container",
+      "shellCommand": "docker-compose down"
+    }
     // {
     //   /**
     //    * (Required) Determines the type of custom command.
