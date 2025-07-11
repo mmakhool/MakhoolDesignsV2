@@ -1,0 +1,19 @@
+{
+  "name": "@makhool-designs/shared",
+  "version": "1.0.0",
+  "description": "Shared utilities and types for MakhoolDesigns",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.3",
+    "@types/node": "^18.16.1"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  }
+}
