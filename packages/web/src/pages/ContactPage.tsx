@@ -1,7 +1,7 @@
 import React from 'react';
-import { ContactForm } from '../components/ContactForm';
+// import { ContactForm } from '../components/ContactForm';
 
-export const ContactPage: React.FC = () => {
+const ContactPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <div className="text-center mb-12">
@@ -17,7 +17,13 @@ export const ContactPage: React.FC = () => {
         {/* Contact Form */}
         <div>
           <h2 className="text-xl font-semibold mb-6">Send us a message</h2>
-          <ContactForm
+          {/* Temporarily commenting out ContactForm to isolate the issue */}
+          <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+            <p className="text-gray-600 dark:text-gray-300">
+              Contact form will be restored shortly. Please use the contact information on the right for now.
+            </p>
+          </div>
+          {/* <ContactForm
             onSuccess={() => {
               // Handle success - could show a success message or redirect
               console.log('Contact form submitted successfully!');
@@ -26,7 +32,7 @@ export const ContactPage: React.FC = () => {
               // Handle error - could show an error toast
               console.error('Contact form error:', error);
             }}
-          />
+          /> */}
         </div>
 
         {/* Contact Information */}
@@ -65,3 +71,5 @@ export const ContactPage: React.FC = () => {
     </div>
   );
 };
+
+export default ContactPage;
