@@ -1,4 +1,5 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
@@ -9,14 +10,20 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@makhool-designs/shared": ["../../packages/shared/src/index.ts"],
+      "@makhool-designs/shared/*": ["../../packages/shared/src/*"],
+      "@makhool-designs/database": ["../../packages/database/src/index.ts"],
+      "@makhool-designs/database/*": ["../../packages/database/src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts", "**/*test.ts"]
