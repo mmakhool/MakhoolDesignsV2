@@ -5,20 +5,20 @@
       "path": "."
     },
     {
-      "name": "🚀 @makhool-designs/web",
-      "path": "packages/web"
-    },
-    {
       "name": "🚀 @makhool-designs/backend",
       "path": "packages/backend"
     },
     {
-      "name": "📦 @makhool-designs/shared",
-      "path": "packages/shared"
-    },
-    {
       "name": "📦 @makhool-designs/database",
       "path": "packages/database"
+    },
+    {
+      "name": "🚀 @makhool-designs/web",
+      "path": "packages/web"
+    },
+    {
+      "name": "📦 @makhool-designs/shared",
+      "path": "packages/shared"
     },
     {
       "name": "🎨 @makhool-designs/ui",

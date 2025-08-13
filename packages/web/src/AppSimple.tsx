@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { ContactPageSimple } from './pages/ContactPageSimple';
+import { Link, Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 import './App.css';
+import { ContactPageSimple } from './pages/ContactPageSimple';
 
 // Simple constants since we're having import issues
 const APP_NAME = 'MakhoolDesigns';
@@ -149,7 +149,7 @@ const Footer: React.FC = () => (
 );
 
 const AppContent: React.FC = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>

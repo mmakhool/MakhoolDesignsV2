@@ -27,7 +27,7 @@ const ADMIN_MENU_ITEMS = [
 ];
 
 const DefaultLayout: React.FC = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   
   // For demo purposes, let's simulate authentication state
   // In a real app, this would come from an auth context or state management

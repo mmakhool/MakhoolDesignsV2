@@ -19,7 +19,7 @@ export const NAVIGATION_ITEMS = [
 
 // Theme constants
 export const THEME_STORAGE_KEY = 'theme-preference';
-export const DEFAULT_THEME = 'light';
+export const DEFAULT_THEME = 'dark';
 
 // API endpoints
 export const API_BASE_URL = process.env.NODE_ENV === 'production' 
