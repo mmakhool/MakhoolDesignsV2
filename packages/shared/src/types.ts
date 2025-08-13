@@ -10,6 +10,59 @@ export const ContactFormSchema = z.object({
 
 export type ContactFormData = z.infer<typeof ContactFormSchema>;
 
+// Authentication schemas
+export const LoginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+export const RegisterSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+export type LoginData = z.infer<typeof LoginSchema>;
+export type RegisterData = z.infer<typeof RegisterSchema>;
+
+// User and Role types
+export enum RoleType {
+  SYSADMIN = 'sysadmin',
+  SYSMANAGER = 'sysmanager',
+  USER = 'user',
+}
+
+export interface Role {
+  id: string;
+  name: RoleType;
+  description?: string;
+}
+
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  role: Role;
+  isActive?: boolean;
+  lastLoginAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken?: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  tokens: AuthTokens;
+}
+
 // Common UI types
 export interface NavigationItem {
   label: string;

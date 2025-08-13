@@ -2,7 +2,14 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { PostgreSqlDriver } from '@mikro-orm/postgresql';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { BlogPost, ContactSubmission, Project, Review } from '../entities';
+import {
+  BlogPost,
+  ContactSubmission,
+  Project,
+  Review,
+  Role,
+  User
+} from '../entities';
 
 /**
  * Database module for MikroORM integration
@@ -21,7 +28,7 @@ import { BlogPost, ContactSubmission, Project, Review } from '../entities';
         dbName: configService.get('DATABASE_NAME', 'makhool_designs'),
 
         // Entity registration
-        entities: [BlogPost, ContactSubmission, Project, Review],
+        entities: [BlogPost, ContactSubmission, Project, Review, Role, User],
 
         // Migration settings
         migrations: {
@@ -66,7 +73,14 @@ import { BlogPost, ContactSubmission, Project, Review } from '../entities';
       inject: [ConfigService]
     }),
     // Register entities for dependency injection
-    MikroOrmModule.forFeature([BlogPost, ContactSubmission, Project, Review])
+    MikroOrmModule.forFeature([
+      BlogPost,
+      ContactSubmission,
+      Project,
+      Review,
+      Role,
+      User
+    ])
   ],
   exports: [MikroOrmModule]
 })

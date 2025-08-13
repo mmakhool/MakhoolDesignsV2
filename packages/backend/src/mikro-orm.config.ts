@@ -1,7 +1,14 @@
 import { UnderscoreNamingStrategy } from '@mikro-orm/core';
 import { Migrator } from '@mikro-orm/migrations';
 import { defineConfig } from '@mikro-orm/postgresql';
-import { BlogPost, ContactSubmission, Project, Review } from './entities/index';
+import {
+  BlogPost,
+  ContactSubmission,
+  Project,
+  Review,
+  Role,
+  User
+} from './entities/index';
 
 export default defineConfig({
   // Database connection
@@ -12,7 +19,7 @@ export default defineConfig({
   dbName: process.env.DATABASE_NAME || 'makhool_designs',
 
   // Entity registration
-  entities: [BlogPost, ContactSubmission, Project, Review],
+  entities: [BlogPost, ContactSubmission, Project, Review, Role, User],
 
   // Migration settings
   migrations: {

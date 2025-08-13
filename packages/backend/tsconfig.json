@@ -1,5 +1,4 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
@@ -18,6 +17,8 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "paths": {
       "@makhool-designs/shared": ["../../packages/shared/src/index.ts"],
       "@makhool-designs/shared/*": ["../../packages/shared/src/*"],
