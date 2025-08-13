@@ -6,8 +6,8 @@ export default defineConfig({
   // Database connection
   host: process.env.DATABASE_HOST || 'localhost',
   port: parseInt(process.env.DATABASE_PORT || '5432'),
-  user: process.env.DATABASE_USERNAME || 'postgres',
-  password: process.env.DATABASE_PASSWORD || 'postgres',
+  user: process.env.DATABASE_USER || 'postgres',
+  password: process.env.DATABASE_PASSWORD || 'dbadmin',
   dbName: process.env.DATABASE_NAME || 'makhool_designs',
   
   // Entity discovery - entities are in the backend package
