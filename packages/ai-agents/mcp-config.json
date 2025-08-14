@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "makhool-designs-agents": {
+      "command": "node",
+      "args": [
+        "/Users/mick/Documents/GitHub/MakhoolDesignsV2/packages/ai-agents/dist/mcp-server.js"
+      ],
+      "env": {
+        "NODE_ENV": "development",
+        "AGENT_LOG_LEVEL": "info"
+      }
+    }
+  }
+}

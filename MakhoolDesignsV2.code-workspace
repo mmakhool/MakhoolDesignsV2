@@ -109,7 +109,9 @@
     },
     "github.copilot.advanced": {
       "mcp.enabled": true,
-      "mcp.servers": ["makhool-designs-agents"]
+      "mcp.servers": [
+        "makhool-designs-agents"
+      ]
     }
   },
   "extensions": {

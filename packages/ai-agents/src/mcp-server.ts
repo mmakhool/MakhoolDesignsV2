@@ -3,7 +3,11 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
     CallToolRequestSchema,
+    GetPromptRequestSchema,
+    ListPromptsRequestSchema,
+    ListResourcesRequestSchema,
     ListToolsRequestSchema,
+    ReadResourceRequestSchema,
     Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 
@@ -14,6 +18,8 @@ import { QAAgent } from './agents/qa-agent.js';
 import { TestingAgent } from './agents/testing-agent.js';
 import { UIUXAgent } from './agents/ui-ux-agent.js';
 import { BaseAgent } from './base-agent.js';
+import { AgentMetrics, handleMCPError, logger } from './logging.js';
+import { MCPResourceManager } from './resources.js';
 import {
     AgentConfig,
     AgentRole,
@@ -22,6 +28,7 @@ import {
     TaskPriority,
     TaskType
 } from './types.js';
+import { AssignTaskSchema, CoordinateAgentsSchema, PlanFeatureSchema, ReviewCodeSchema, validateInput } from './validation.js';
 
 /**
  * MCP Server for MakhoolDesigns Multi-Agent Development Team
@@ -42,6 +49,8 @@ class MakhoolDesignsMCPServer {
   private server: Server;
   private agents: Map<string, any>;
   private projectContext: ProjectContext;
+  private resourceManager: MCPResourceManager;
+  private metrics: AgentMetrics;
 
   constructor() {
     this.server = new Server(
@@ -52,11 +61,16 @@ class MakhoolDesignsMCPServer {
       {
         capabilities: {
           tools: {},
+          resources: {},
+          prompts: {},
+          logging: {},
         },
       }
     );
 
     this.agents = new Map();
+    this.resourceManager = new MCPResourceManager(process.cwd());
+    this.metrics = AgentMetrics.getInstance();
     this.projectContext = {
       name: 'MakhoolDesigns',
       description: 'Family-owned design and development business - Rush.js monorepo',
@@ -85,6 +99,13 @@ class MakhoolDesignsMCPServer {
 
     this.initializeAgents();
     this.setupToolHandlers();
+    this.setupResourceHandlers();
+    this.setupPromptHandlers();
+
+    logger.info('MakhoolDesigns MCP Server initialized', {
+      agentCount: this.agents.size,
+      serverName: 'makhool-designs-agents'
+    });
   }
 
   private initializeAgents(): void {
@@ -204,6 +225,8 @@ class MakhoolDesignsMCPServer {
   }
 
   private setupToolHandlers(): void {
+    logger.info('Setting up MCP tool handlers');
+    
     // List all available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       const tools: Tool[] = [
@@ -329,24 +352,49 @@ class MakhoolDesignsMCPServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
 
+      const startTime = Date.now();
+      logger.info('MCP tool execution started', { toolName: name, args });
+
       try {
+        let result;
+        
         switch (name) {
           case 'assign_task':
-            return await this.handleAssignTask(args);
+            result = await this.handleAssignTask(validateInput(AssignTaskSchema, args));
+            break;
           case 'coordinate_agents':
-            return await this.handleCoordinateAgents(args);
+            result = await this.handleCoordinateAgents(validateInput(CoordinateAgentsSchema, args));
+            break;
           case 'get_agent_info':
-            return await this.handleGetAgentInfo(args);
+            result = await this.handleGetAgentInfo(args);
+            break;
           case 'get_project_context':
-            return await this.handleGetProjectContext();
+            result = await this.handleGetProjectContext();
+            break;
           case 'plan_feature':
-            return await this.handlePlanFeature(args);
+            result = await this.handlePlanFeature(validateInput(PlanFeatureSchema, args));
+            break;
           case 'review_code':
-            return await this.handleReviewCode(args);
+            result = await this.handleReviewCode(validateInput(ReviewCodeSchema, args));
+            break;
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
+
+        const duration = Date.now() - startTime;
+        logger.info('MCP tool execution completed', { toolName: name, duration, success: true });
+        
+        return result;
       } catch (error) {
+        const duration = Date.now() - startTime;
+        const mcpError = handleMCPError(error, `Tool execution: ${name}`);
+        
+        logger.error('MCP tool execution failed', { 
+          toolName: name, 
+          duration, 
+          error: mcpError.message 
+        });
+
         return {
           content: [
             {
@@ -357,6 +405,154 @@ class MakhoolDesignsMCPServer {
         };
       }
     });
+  }
+
+  private setupResourceHandlers(): void {
+    logger.info('Setting up MCP resource handlers');
+
+    // List available resources
+    this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
+      try {
+        const resources = await this.resourceManager.listResources();
+        logger.info('Listed MCP resources', { resourceCount: resources.length });
+        return { resources };
+      } catch (error) {
+        const mcpError = handleMCPError(error, 'List resources');
+        throw mcpError;
+      }
+    });
+
+    // Read resource content
+    this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+      const { uri } = request.params;
+      
+      try {
+        logger.info('Reading MCP resource', { uri });
+        const content = await this.resourceManager.readResource(uri);
+        
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: uri.endsWith('.json') ? 'application/json' : 'text/plain',
+              text: content
+            }
+          ]
+        };
+      } catch (error) {
+        const mcpError = handleMCPError(error, `Read resource: ${uri}`);
+        throw mcpError;
+      }
+    });
+  }
+
+  private setupPromptHandlers(): void {
+    logger.info('Setting up MCP prompt handlers');
+
+    // List available prompts
+    this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
+      const prompts = [
+        {
+          name: 'analyze_task',
+          description: 'Analyze a development task and recommend the best agent approach',
+          arguments: [
+            { name: 'task_description', description: 'Description of the task to analyze', required: true },
+            { name: 'context', description: 'Additional context about the task', required: false }
+          ]
+        },
+        {
+          name: 'plan_architecture',
+          description: 'Generate an architectural plan for a new feature',
+          arguments: [
+            { name: 'feature_name', description: 'Name of the feature to plan', required: true },
+            { name: 'requirements', description: 'Feature requirements', required: true },
+            { name: 'constraints', description: 'Technical constraints', required: false }
+          ]
+        },
+        {
+          name: 'code_review_checklist',
+          description: 'Generate a comprehensive code review checklist',
+          arguments: [
+            { name: 'review_type', description: 'Type of review (security, performance, etc.)', required: true },
+            { name: 'technology', description: 'Technology stack being reviewed', required: false }
+          ]
+        }
+      ];
+
+      logger.info('Listed MCP prompts', { promptCount: prompts.length });
+      return { prompts };
+    });
+
+    // Get prompt content
+    this.server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+      const { name, arguments: args } = request.params;
+
+      try {
+        logger.info('Getting MCP prompt', { promptName: name, args });
+        const prompt = await this.generatePrompt(name, args || {});
+        
+        return {
+          description: prompt.description,
+          messages: [
+            {
+              role: 'user',
+              content: {
+                type: 'text',
+                text: prompt.content
+              }
+            }
+          ]
+        };
+      } catch (error) {
+        const mcpError = handleMCPError(error, `Get prompt: ${name}`);
+        throw mcpError;
+      }
+    });
+  }
+
+  private async generatePrompt(name: string, args: Record<string, any>): Promise<{ description: string; content: string }> {
+    switch (name) {
+      case 'analyze_task':
+        return {
+          description: 'Analyze development task for optimal agent assignment',
+          content: `Analyze this development task:
+
+**Task Description:** ${args.task_description}
+**Context:** ${args.context || 'No additional context provided'}
+
+**Analysis Required:**
+1. Identify the primary domain(s) this task belongs to
+2. Recommend which agent(s) should handle this task
+3. Suggest collaboration patterns if multiple agents needed
+
+**Response Format:**
+- Primary Agent: [agent name and reason]
+- Supporting Agents: [if needed]
+- Collaboration Type: [sequential/parallel/review]`
+        };
+
+      case 'plan_architecture':
+        return {
+          description: 'Generate architectural plan for new feature',
+          content: `Plan the architecture for this feature:
+
+**Feature:** ${args.feature_name}
+**Requirements:** ${args.requirements}
+**Constraints:** ${args.constraints || 'No specific constraints'}`
+        };
+
+      case 'code_review_checklist':
+        return {
+          description: 'Generate code review checklist',
+          content: `Create a code review checklist for:
+
+**Review Type:** ${args.review_type}
+**Technology:** ${args.technology || 'MakhoolDesigns tech stack'}`
+        };
+
+      default:
+        throw new Error(`Unknown prompt: ${name}`);
+    }
   }
 
   private async handleAssignTask(args: any) {
