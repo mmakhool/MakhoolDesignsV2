@@ -17,7 +17,8 @@
     "@makhool-designs/shared": "workspace:*",
     "axios": "^1.6.5",
     "@tanstack/react-query": "^5.17.9",
-    "react-hot-toast": "^2.4.1"
+    "react-hot-toast": "^2.4.1",
+    "@makhool-designs/ui": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

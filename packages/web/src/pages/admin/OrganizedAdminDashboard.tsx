@@ -7,7 +7,7 @@ import { EnhancedWoWWidget } from '../../components/widgets/EnhancedWoWWidget';
 import { PokemonWidget } from '../../components/widgets/PokemonWidget';
 import { StarWarsCharacterWidget } from '../../components/widgets/StarWarsCharacterWidget';
 
-// Dashboard Categories
+// Organized Dashboard Categories
 interface DashboardSection {
   id: string;
   title: string;
@@ -68,7 +68,7 @@ const dashboardSections: DashboardSection[] = [
 
 type ViewMode = 'overview' | 'management' | 'gaming' | 'entertainment';
 
-export const AdminDashboard: React.FC = () => {
+export const OrganizedAdminDashboard: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewMode>('overview');
 
   const renderOverview = () => (
@@ -283,7 +283,16 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          Admin Dashboard
+        </h1>
+        <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
+          Organized administration panel with categorized sections
+        </p>
+      </div>
+
       {/* Navigation Breadcrumb */}
       {currentView !== 'overview' && (
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
@@ -307,8 +316,8 @@ export const AdminDashboard: React.FC = () => {
       {currentView === 'management' && renderManagementView()}
       {currentView === 'gaming' && renderWidgetView('gaming')}
       {currentView === 'entertainment' && renderWidgetView('entertainment')}
-    </div>
+    </main>
   );
 };
 
-export default AdminDashboard;
+export default OrganizedAdminDashboard;

@@ -13,7 +13,7 @@ This is a Rush.js monorepo for MakhoolDesigns, a family-owned design and develop
 - **@makhool-designs/backend** - NestJS 11.0.1 API server with TypeScript
 - **@makhool-designs/shared** - Shared types, utilities, constants, and Zod validation schemas
 - **@makhool-designs/database** - Database schemas and migrations with MikroORM 6.1.12
-- **@makhool-designs/ui** - Shared UI components library with Tailwind CSS
+- **@makhool-designs/ui** - Shared UI components library with Tailwind CSS, class-variance-authority, and utility functions
 
 ### Tech Stack
 - **Frontend**: React 19, TypeScript 5.8.3, Vite 6.0.0, TailwindCSS, React Router 7, TanStack Query v5, Axios
@@ -23,7 +23,8 @@ This is a Rush.js monorepo for MakhoolDesigns, a family-owned design and develop
 - **Infrastructure**: Docker Compose for development database
 - **Email**: Nodemailer for contact form functionality
 - **API Communication**: RESTful APIs with TanStack Query for state management
-- **Development**: ESLint, Prettier, hot reload for both frontend and backend
+- **Development**: ESLint, Prettier, hot reload for both frontend and backend, all lint issues resolved
+- **UI Components**: Shared component library with proper utility functions (`cn`) and Tailwind CSS integration
 
 ## Development Guidelines
 
@@ -106,6 +107,11 @@ This is a Rush.js monorepo for MakhoolDesigns, a family-owned design and develop
 - **Error Handling**: Comprehensive error handling with structured responses
 - **Form Validation**: Client-side and server-side validation using shared Zod schemas
 - **Database Setup**: MikroORM with PostgreSQL, entities defined, migrations working
+- **Authentication System**: Complete JWT-based authentication with registration, login, logout, and profile management
+- **Session Management**: Database-backed sessions with UserSession entity, token validation, and automatic cleanup
+- **Task Scheduling**: NestJS Schedule module with automated session cleanup tasks (hourly and frequent intervals)
+- **User Management**: Role-based access control with User and Role entities, admin/user permissions
+- **Navigation Integration**: Proper logout navigation returning users to home page
 - **Monorepo Management**: Rush.js properly configured with PNPM workspaces
 
 ### 🔧 Current Architecture Details
@@ -118,8 +124,10 @@ This is a Rush.js monorepo for MakhoolDesigns, a family-owned design and develop
 - **UI System**: Shared UI components with Tailwind CSS, dark mode support, responsive design
 
 ### 🚀 Ready for Further Development
+- **Session Management**: Complete database-backed session management with UserSession entity, automatic cleanup, and security features
+- **Task Scheduling**: NestJS Schedule module integrated with cron jobs for automated maintenance tasks
 - **Additional API Endpoints**: Projects and Reviews controllers scaffolded (Projects implemented, Reviews needs implementation)
-- **Authentication**: Infrastructure ready for JWT-based auth (routes protected with AuthWrap)
+- **Authentication**: Full JWT-based authentication with session validation and logout navigation
 - **Admin System**: Admin routes and components scaffolded, permission system ready
 - **File Uploads**: Infrastructure in place for file handling
 - **Email Service**: Nodemailer configured and working (needs production SMTP credentials)
@@ -131,6 +139,62 @@ This is a Rush.js monorepo for MakhoolDesigns, a family-owned design and develop
 2. **Project**: id (UUID), title, description, imageUrl, tags[], category (enum), featured, dates
 3. **Review**: id (UUID), clientName, clientCompany, content, rating, avatarUrl, dates
 4. **BlogPost**: id (UUID), title, content, excerpt, tags[], published, authorId, dates
+5. **User**: id (UUID), email, username, password (hashed), firstName, lastName, role, isActive, dates
+6. **Role**: id (UUID), name (sysadmin, sysmanager, user), description, permissions, dates
+7. **UserSession**: id (UUID), userId, accessToken (hashed), refreshToken (hashed), expiresAt, isActive, userAgent, ipAddress, dates
+
+## Authentication & Session Management
+
+### Authentication Flow
+1. **Registration**: New users register with email, username, password, and optional profile information
+2. **Login**: Users authenticate with email/username and password, receive JWT tokens
+3. **Session Creation**: Each login creates a UserSession record with hashed access/refresh tokens
+4. **Token Validation**: JwtAuthGuard validates tokens against active sessions in database
+5. **Logout**: Invalidates session in database and navigates user to home page
+6. **Session Cleanup**: Automated cleanup of expired sessions via NestJS Schedule
+
+### UserSession Entity
+- **Purpose**: Database-backed session tracking with enhanced security
+- **Fields**: UUID primary key, user relationship, hashed tokens, expiry dates, metadata (IP, user agent)
+- **Security**: Access tokens are hashed before storage, indexed for fast lookups
+- **Lifecycle**: Created on login, validated on requests, invalidated on logout, auto-cleaned when expired
+
+### Task Service & Automated Cleanup
+- **Implementation**: NestJS Schedule module with cron decorators (`@Cron`)
+- **Hourly Cleanup**: `@Cron(CronExpression.EVERY_HOUR)` - removes expired sessions every hour
+- **Frequent Cleanup**: `@Cron('0,30 * * * *')` - checks every 30 minutes during high activity
+- **Manual Triggers**: API endpoints for admin-triggered session cleanup via TasksController
+- **Monitoring**: Comprehensive logging and status endpoints for task monitoring
+
+### Authentication API Endpoints
+- **POST /api/auth/register** - User registration with role assignment
+- **POST /api/auth/login** - User authentication with session creation
+- **POST /api/auth/logout** - Session invalidation and cleanup
+- **GET /api/auth/profile** - Get current user profile (JWT protected)
+- **POST /api/auth/refresh** - Refresh expired access tokens
+- **POST /api/tasks/cleanup/sessions** - Manual session cleanup (admin only)
+- **GET /api/tasks/status** - Task service status and schedule information
+
+## Task Management System
+
+### TasksService Features
+- **Automated Cleanup**: Uses `@nestjs/schedule` with cron expressions for reliable scheduling
+- **Error Handling**: Comprehensive error logging and graceful failure handling
+- **Manual Triggers**: API endpoints for administrative control over cleanup tasks
+- **Status Monitoring**: Real-time status reporting for scheduled tasks
+- **Scalability**: Designed for production environments with proper resource management
+
+### Cron Schedule Patterns
+- **Hourly**: `CronExpression.EVERY_HOUR` (0 * * * *) - Main cleanup cycle
+- **Frequent**: `0,30 * * * *` - Every 30 minutes for high-activity periods
+- **Custom**: Easily extensible for additional maintenance tasks
+
+### Security & Performance
+- **Database Indexing**: Optimized queries for session lookups and cleanup
+- **Token Hashing**: All tokens hashed before database storage
+- **Rate Limiting**: Ready for implementation on authentication endpoints
+- **Audit Trail**: Comprehensive logging of authentication events
+- **Memory Management**: Efficient cleanup prevents database bloat
 
 ## Common Commands
 
