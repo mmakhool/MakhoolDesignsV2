@@ -23,6 +23,10 @@
     {
       "name": "🎨 @makhool-designs/ui",
       "path": "packages/ui"
+    },
+    {
+      "name": "📦 ai-agents",
+      "path": "packages/ai-agents"
     }
   ],
   "settings": {
@@ -90,6 +94,22 @@
       "**/temp": true,
       "common/temp": true,
       "**/rush-logs": true
+    },
+    "mcp.servers": {
+      "makhool-designs-agents": {
+        "command": "node",
+        "args": [
+          "${workspaceFolder}/packages/ai-agents/dist/mcp-server.js"
+        ],
+        "env": {
+          "NODE_ENV": "development"
+        },
+        "description": "MakhoolDesigns AI Agent Team - Multi-agent development assistance"
+      }
+    },
+    "github.copilot.advanced": {
+      "mcp.enabled": true,
+      "mcp.servers": ["makhool-designs-agents"]
     }
   },
   "extensions": {

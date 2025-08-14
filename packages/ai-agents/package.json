@@ -1,0 +1,55 @@
+{
+  "name": "@makhool-designs/ai-agents",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./mcp-server": {
+      "import": {
+        "types": "./dist/mcp-server.d.ts",
+        "default": "./dist/mcp-server.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/mcp-server.ts",
+    "start": "node dist/mcp-server.js",
+    "start-server": "node start-server.mjs",
+    "mcp-server": "node dist/mcp-server.js",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@makhool-designs/shared": "workspace:*",
+    "@anthropic-ai/sdk": "^0.20.9",
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "openai": "^4.67.3",
+    "zod": "^3.23.8",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "winston": "^3.15.0",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.3",
+    "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.2"
+  }
+}

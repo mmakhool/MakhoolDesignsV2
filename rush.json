@@ -355,6 +355,10 @@
     {
       "packageName": "@makhool-designs/ui",
       "projectFolder": "packages/ui"
+    },
+    {
+      "packageName": "@makhool-designs/ai-agents",
+      "projectFolder": "packages/ai-agents"
     }
     // {
     //   /**
