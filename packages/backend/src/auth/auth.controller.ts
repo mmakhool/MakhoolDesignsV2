@@ -27,6 +27,9 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 
 interface AuthenticatedRequest {
   user: User;
+  headers?: {
+    authorization?: string;
+  };
 }
 
 @ApiTags('auth')
@@ -152,5 +155,22 @@ export class AuthController {
       isActive: user.isActive,
       lastLoginAt: user.lastLoginAt
     };
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Logout user and invalidate session' })
+  @ApiResponse({ status: 200, description: 'Successfully logged out' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async logout(@Request() req: AuthenticatedRequest) {
+    // Extract token from Authorization header
+    const authorization = req.headers?.['authorization'] as string;
+    if (authorization && authorization.startsWith('Bearer ')) {
+      const accessToken = authorization.substring(7);
+      await this.authService.logout(accessToken);
+    }
+
+    return { message: 'Successfully logged out' };
   }
 }

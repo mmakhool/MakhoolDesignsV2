@@ -11,6 +11,7 @@ export interface NavigationItem {
   href: string;
   icon?: React.ComponentType<{ className?: string }>;
   external?: boolean;
+  onClick?: () => void;
 }
 
 export interface NavigationProps {
@@ -108,14 +109,27 @@ export const Navigation: React.FC<NavigationProps> = ({
                 {isAdminMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                     {adminMenuItems.map((item) => (
-                      <Link
-                        key={item.href}
-                        to={item.href}
-                        onClick={() => setIsAdminMenuOpen(false)}
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        {item.label}
-                      </Link>
+                      item.onClick ? (
+                        <button
+                          key={item.label}
+                          onClick={() => {
+                            item.onClick?.();
+                            setIsAdminMenuOpen(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          {item.label}
+                        </button>
+                      ) : (
+                        <Link
+                          key={item.href}
+                          to={item.href}
+                          onClick={() => setIsAdminMenuOpen(false)}
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          {item.label}
+                        </Link>
+                      )
                     ))}
                   </div>
                 )}
@@ -142,14 +156,27 @@ export const Navigation: React.FC<NavigationProps> = ({
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                     {userMenuItems.map((item) => (
-                      <Link
-                        key={item.href}
-                        to={item.href}
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        {item.label}
-                      </Link>
+                      item.onClick ? (
+                        <button
+                          key={item.label}
+                          onClick={() => {
+                            item.onClick?.();
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          {item.label}
+                        </button>
+                      ) : (
+                        <Link
+                          key={item.href}
+                          to={item.href}
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          {item.label}
+                        </Link>
+                      )
                     ))}
                   </div>
                 )}

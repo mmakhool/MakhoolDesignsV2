@@ -1,27 +1,23 @@
-import { type AuthResponse, type LoginData, type RegisterData } from '@makhool-designs/shared';
+import { type LoginData, type RegisterData } from '@makhool-designs/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 import { authApi } from '../services/api';
+import { useAuth } from './useAuth';
 
 // API Hook for login
 export const useLoginMutation = () => {
   const queryClient = useQueryClient();
+  const { login } = useAuth();
   
   return useMutation({
-    mutationFn: (data: LoginData) => authApi.login(data),
-    onSuccess: (response: AuthResponse) => {
-      // Store tokens and user data
-      localStorage.setItem('auth_tokens', JSON.stringify({
-        accessToken: response.tokens.accessToken,
-        refreshToken: response.tokens.refreshToken,
-      }));
-      localStorage.setItem('auth_user', JSON.stringify(response.user));
+    mutationFn: (data: LoginData) => login(data),
+    onSuccess: () => {
+      // Success handling is done in the AuthContext
+      toast.success('Successfully logged in!');
       
       // Invalidate queries that might need fresh data
       queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] });
-      
-      toast.success('Successfully logged in!');
     },
     onError: (error: AxiosError) => {
       const message = (error.response?.data as { message?: string })?.message || 'Login failed';
@@ -33,21 +29,16 @@ export const useLoginMutation = () => {
 // API Hook for registration
 export const useRegisterMutation = () => {
   const queryClient = useQueryClient();
+  const { register } = useAuth();
   
   return useMutation({
-    mutationFn: (data: RegisterData) => authApi.register(data),
-    onSuccess: (response: AuthResponse) => {
-      // Store tokens and user data
-      localStorage.setItem('auth_tokens', JSON.stringify({
-        accessToken: response.tokens.accessToken,
-        refreshToken: response.tokens.refreshToken,
-      }));
-      localStorage.setItem('auth_user', JSON.stringify(response.user));
+    mutationFn: (data: RegisterData) => register(data),
+    onSuccess: () => {
+      // Success handling is done in the AuthContext
+      toast.success('Account created successfully!');
       
       // Invalidate queries that might need fresh data
       queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] });
-      
-      toast.success('Account created successfully!');
     },
     onError: (error: AxiosError) => {
       const message = (error.response?.data as { message?: string })?.message || 'Registration failed';

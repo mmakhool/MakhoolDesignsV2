@@ -9,6 +9,7 @@ import { User } from '../entities/user.entity';
 import { RolesService } from '../roles/roles.service';
 import { UsersService } from '../users/users.service';
 import { AuthTokenService, AuthTokens } from './auth-token.service';
+import { UserSessionService } from './user-session.service';
 
 export interface LoginDto {
   email: string;
@@ -44,7 +45,8 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly rolesService: RolesService,
-    private readonly tokenService: AuthTokenService
+    private readonly tokenService: AuthTokenService,
+    private readonly sessionService: UserSessionService
   ) {}
 
   async validateUser(email: string, password: string): Promise<User | null> {
@@ -75,7 +77,18 @@ export class AuthService {
     // Update last login
     await this.usersService.update(user.id, { lastLoginAt: new Date() });
 
+    // Generate tokens
     const tokens = this.tokenService.generateTokens(user);
+
+    // Create session record in database
+    const accessTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    await this.sessionService.createSession({
+      user,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken || '',
+      expiresAt: accessTokenExpiry
+      // TODO: Add IP address and user agent from request context
+    });
 
     return {
       user: {
@@ -132,6 +145,16 @@ export class AuthService {
 
     const tokens = this.tokenService.generateTokens(user);
 
+    // Create session record in database
+    const accessTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    await this.sessionService.createSession({
+      user,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken || '',
+      expiresAt: accessTokenExpiry
+      // TODO: Add IP address and user agent from request context
+    });
+
     return {
       user: {
         id: user.id,
@@ -151,16 +174,45 @@ export class AuthService {
 
   async refreshToken(refreshToken: string): Promise<AuthTokens> {
     try {
-      const payload = this.tokenService.verifyToken(refreshToken, true);
-      const user = await this.usersService.findById(payload.sub);
+      // Find and validate the session by refresh token
+      const session =
+        await this.sessionService.findByRefreshToken(refreshToken);
 
+      if (!session || !session.isActive) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const user = session.user;
       if (!user || !user.isActive) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      return this.tokenService.generateTokens(user);
+      // Generate new tokens
+      const newTokens = this.tokenService.generateTokens(user);
+
+      // Update the session with new tokens
+      const accessTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      await this.sessionService.refreshSession(
+        session.id,
+        newTokens.accessToken,
+        newTokens.refreshToken || '',
+        accessTokenExpiry
+      );
+
+      return newTokens;
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  async logout(accessToken: string): Promise<void> {
+    try {
+      const session = await this.sessionService.findByAccessToken(accessToken);
+      if (session) {
+        await this.sessionService.invalidateSession(session.id);
+      }
+    } catch {
+      // Silently fail if session not found - user might be logging out with expired token
     }
   }
 

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import { Navigation } from '../components/Navigation';
+import { useAuth } from '../hooks/useAuth';
 
 const APP_NAME = 'MakhoolDesigns';
 
@@ -15,16 +16,20 @@ const NAVIGATION_ITEMS = [
 
 const DefaultLayout: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const { state, logout } = useAuth();
   
-  // Temporarily disable authentication to fix white screen
-  const isAuthenticated = false;
-  const isAdmin = false;
+  const isAuthenticated = state.isAuthenticated;
+  const isAdmin = state.user?.role?.name === 'sysadmin' || state.user?.role?.name === 'sysmanager';
 
-  // Simple user and admin menu items
+  const handleLogout = useCallback(async () => {
+    await logout();
+  }, [logout]);
+
+  // User menu items with logout handler
   const USER_MENU_ITEMS = [
-    { label: 'Profile', href: '/user/profile' },
-    { label: 'Settings', href: '/user/settings' },
-    { label: 'Logout', href: '#', external: false },
+    { label: 'Profile', href: '/profile' },
+    { label: 'Settings', href: '/settings' },
+    { label: 'Logout', href: '#', onClick: handleLogout },
   ];
 
   const ADMIN_MENU_ITEMS = [
@@ -33,7 +38,7 @@ const DefaultLayout: React.FC = () => {
     { label: 'Projects', href: '/admin/projects' },
     { label: 'Roles', href: '/admin/roles' },
     { label: 'Settings', href: '/admin/settings' },
-    { label: 'Logout', href: '#', external: false },
+    { label: 'Logout', href: '#', onClick: handleLogout },
   ];
 
   return (

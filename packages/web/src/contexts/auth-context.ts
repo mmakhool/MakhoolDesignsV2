@@ -13,7 +13,7 @@ export interface AuthContextType {
   state: AuthState;
   login: (data: LoginData) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   clearError: () => void;
   refreshToken: () => Promise<void>;
 }

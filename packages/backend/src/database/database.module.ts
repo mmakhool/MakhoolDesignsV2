@@ -8,7 +8,8 @@ import {
   Project,
   Review,
   Role,
-  User
+  User,
+  UserSession
 } from '../entities';
 
 /**
@@ -28,7 +29,15 @@ import {
         dbName: configService.get('DATABASE_NAME', 'makhool_designs'),
 
         // Entity registration
-        entities: [BlogPost, ContactSubmission, Project, Review, Role, User],
+        entities: [
+          BlogPost,
+          ContactSubmission,
+          Project,
+          Review,
+          Role,
+          User,
+          UserSession
+        ],
 
         // Migration settings
         migrations: {

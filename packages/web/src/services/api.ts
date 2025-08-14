@@ -96,6 +96,10 @@ export const authApi = {
     const response = await apiClient.get('/api/auth/profile');
     return response.data;
   },
+  logout: async () => {
+    const response = await apiClient.post('/api/auth/logout');
+    return response.data;
+  },
 };
 
 export default apiClient;

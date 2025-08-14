@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Load auth data from localStorage on app start
   useEffect(() => {
-    const loadAuthFromStorage = () => {
+    const loadAuthFromStorage = async () => {
       try {
         const storedTokens = localStorage.getItem('auth_tokens');
         const storedUser = localStorage.getItem('auth_user');
@@ -94,24 +94,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const tokens: AuthTokens = JSON.parse(storedTokens);
           const user: User = JSON.parse(storedUser);
           
-          // Verify token is still valid by making a profile request
-          authApi.getProfile()
-            .then(() => {
-              dispatch({
-                type: 'AUTH_SUCCESS',
-                payload: { user, tokens },
-              });
-            })
-            .catch(() => {
-              // Token is invalid, clear storage
-              localStorage.removeItem('auth_tokens');
-              localStorage.removeItem('auth_user');
+          // Immediately set the auth state from localStorage
+          dispatch({
+            type: 'AUTH_SUCCESS',
+            payload: { user, tokens },
+          });
+
+          // Then verify token is still valid by making a profile request
+          try {
+            const profileData = await authApi.getProfile();
+            // Update user data with fresh data from server
+            dispatch({
+              type: 'SET_USER',
+              payload: profileData,
             });
+          } catch {
+            // Token is invalid, clear storage and logout
+            localStorage.removeItem('auth_tokens');
+            localStorage.removeItem('auth_user');
+            dispatch({ type: 'LOGOUT' });
+          }
         }
       } catch {
         // Invalid stored data, clear it
         localStorage.removeItem('auth_tokens');
         localStorage.removeItem('auth_user');
+        dispatch({ type: 'LOGOUT' });
       }
     };
 
@@ -165,10 +173,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = (): void => {
-    dispatch({ type: 'LOGOUT' });
-    localStorage.removeItem('auth_tokens');
-    localStorage.removeItem('auth_user');
+  const logout = async (): Promise<void> => {
+    try {
+      // Call backend logout endpoint if user is authenticated
+      if (state.isAuthenticated) {
+        await authApi.logout();
+      }
+    } catch (error) {
+      // Even if logout fails on backend, clear local state
+      console.error('Logout error:', error);
+    } finally {
+      dispatch({ type: 'LOGOUT' });
+      localStorage.removeItem('auth_tokens');
+      localStorage.removeItem('auth_user');
+    }
   };
 
   const clearError = (): void => {

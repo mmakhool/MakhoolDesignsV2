@@ -7,6 +7,7 @@ import { ContactModule } from './contact/contact.module';
 import { DatabaseModule } from './database/database.module';
 import { ProjectsModule } from './projects/projects.module';
 import { RolesModule } from './roles/roles.module';
+import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -20,7 +21,8 @@ import { UsersModule } from './users/users.module';
     ProjectsModule,
     RolesModule,
     UsersModule,
-    AuthModule
+    AuthModule,
+    TasksModule
   ],
   controllers: [AppController],
   providers: [AppService]
