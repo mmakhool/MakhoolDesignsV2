@@ -7,9 +7,9 @@ import { AppRouter } from './router/AppRouter';
 
 function App() {
   return (
-    <AuthProvider>
-      <ApiProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <ApiProvider>
           <AppRouter />
           <Toaster 
             position="top-right"
@@ -21,9 +21,9 @@ function App() {
               },
             }}
           />
-        </Router>
-      </ApiProvider>
-    </AuthProvider>
+        </ApiProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

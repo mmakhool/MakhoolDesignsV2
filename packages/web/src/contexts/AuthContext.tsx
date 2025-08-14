@@ -1,5 +1,6 @@
 import { type AuthResponse, type AuthTokens, type LoginData, type RegisterData, type User } from '@makhool-designs/shared';
 import React, { useEffect, useReducer, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
 import { AuthContext } from './auth-context';
 
@@ -82,6 +83,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const navigate = useNavigate();
 
   // Load auth data from localStorage on app start
   useEffect(() => {
@@ -186,6 +188,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       dispatch({ type: 'LOGOUT' });
       localStorage.removeItem('auth_tokens');
       localStorage.removeItem('auth_user');
+      // Navigate to home page after logout
+      navigate('/');
     }
   };
 
