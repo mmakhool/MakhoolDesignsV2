@@ -102,4 +102,50 @@ export const authApi = {
   },
 };
 
+// Users API
+export const usersApi = {
+  getAllUsers: async () => {
+    const response = await apiClient.get('/api/users');
+    return response.data;
+  },
+  getUser: async (id: string) => {
+    const response = await apiClient.get(`/api/users/${id}`);
+    return response.data;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createUser: async (userData: any) => {
+    const response = await apiClient.post('/api/users', userData);
+    return response.data;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateUser: async (id: string, userData: any) => {
+    const response = await apiClient.put(`/api/users/${id}`, userData);
+    return response.data;
+  },
+  deleteUser: async (id: string) => {
+    const response = await apiClient.delete(`/api/users/${id}`);
+    return response.data;
+  },
+  toggleUserActive: async (id: string) => {
+    const response = await apiClient.put(`/api/users/${id}/toggle-active`);
+    return response.data;
+  },
+  updateUserRole: async (userId: string, roleId: string) => {
+    const response = await apiClient.put(`/api/users/${userId}/role`, { roleId });
+    return response.data;
+  },
+};
+
+// Roles API
+export const rolesApi = {
+  getAllRoles: async () => {
+    const response = await apiClient.get('/api/roles');
+    return response.data;
+  },
+  getActiveRoles: async () => {
+    const response = await apiClient.get('/api/roles/active');
+    return response.data;
+  },
+};
+
 export default apiClient;

@@ -51,6 +51,38 @@ const dashboardSections: DashboardSection[] = [
     ]
   },
   {
+    id: 'ai-management',
+    title: 'AI Management',
+    icon: '🤖',
+    description: 'Manage AI agents, tasks, and MCP server infrastructure',
+    links: [
+      {
+        title: 'AI Dashboard',
+        href: '/admin/ai',
+        icon: '📊',
+        description: 'Overview of AI system status and metrics'
+      },
+      {
+        title: 'Agent Management',
+        href: '/admin/ai/agents',
+        icon: '🤖',
+        description: 'Configure and monitor AI agents'
+      },
+      {
+        title: 'Task Queue',
+        href: '/admin/ai/tasks',
+        icon: '📋',
+        description: 'Monitor and manage AI task execution'
+      },
+      {
+        title: 'MCP Server',
+        href: '/admin/ai/mcp',
+        icon: '🔧',
+        description: 'Model Context Protocol server management'
+      }
+    ]
+  },
+  {
     id: 'gaming',
     title: 'Gaming APIs',
     icon: '🎮',
@@ -66,7 +98,7 @@ const dashboardSections: DashboardSection[] = [
   }
 ];
 
-type ViewMode = 'overview' | 'management' | 'gaming' | 'entertainment';
+type ViewMode = 'overview' | 'management' | 'ai-management' | 'gaming' | 'entertainment';
 
 export const AdminDashboard: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewMode>('overview');
@@ -124,6 +156,7 @@ export const AdminDashboard: React.FC = () => {
               className="p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               onClick={() => {
                 if (section.id === 'management') setCurrentView('management');
+                else if (section.id === 'ai-management') setCurrentView('ai-management');
                 else if (section.id === 'gaming') setCurrentView('gaming');
                 else if (section.id === 'entertainment') setCurrentView('entertainment');
               }}
@@ -207,6 +240,90 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </Link>
           ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderAIManagementView = () => {
+    const aiSection = dashboardSections.find(s => s.id === 'ai-management');
+    if (!aiSection?.links) return null;
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-8">
+          <button
+            onClick={() => setCurrentView('overview')}
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+          >
+            ← Back to Overview
+          </button>
+          <div className="text-3xl">{aiSection.icon}</div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {aiSection.title}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              {aiSection.description}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {aiSection.links.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className="group bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center text-2xl">
+                  {link.icon}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                    {link.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {link.description}
+                  </p>
+                </div>
+              </div>
+              <div className="text-sm text-purple-600 dark:text-purple-400 group-hover:underline">
+                Access {link.title} →
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* AI System Status Summary */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-6 border border-purple-200 dark:border-purple-800">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="text-2xl">🤖</div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">AI System Status</h3>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+            The AI management system provides comprehensive control over your multi-agent development team. 
+            Monitor agent performance, assign tasks, coordinate complex workflows, and maintain your MCP server infrastructure.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-white dark:bg-gray-800 rounded-lg">
+              <div className="text-lg font-bold text-green-600">3</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">Active Agents</div>
+            </div>
+            <div className="text-center p-3 bg-white dark:bg-gray-800 rounded-lg">
+              <div className="text-lg font-bold text-blue-600">12</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">Tasks Today</div>
+            </div>
+            <div className="text-center p-3 bg-white dark:bg-gray-800 rounded-lg">
+              <div className="text-lg font-bold text-purple-600">94%</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">Success Rate</div>
+            </div>
+            <div className="text-center p-3 bg-white dark:bg-gray-800 rounded-lg">
+              <div className="text-lg font-bold text-green-600">✓</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">MCP Server</div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -305,6 +422,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Content based on current view */}
       {currentView === 'overview' && renderOverview()}
       {currentView === 'management' && renderManagementView()}
+      {currentView === 'ai-management' && renderAIManagementView()}
       {currentView === 'gaming' && renderWidgetView('gaming')}
       {currentView === 'entertainment' && renderWidgetView('entertainment')}
     </div>

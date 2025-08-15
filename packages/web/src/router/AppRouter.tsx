@@ -24,6 +24,7 @@ const AdminUsers = lazy(() => import('../pages/admin/AdminUsers'));
 const AdminRoles = lazy(() => import('../pages/admin/AdminRoles'));
 const AdminSettings = lazy(() => import('../pages/admin/AdminSettings'));
 const AdminProjects = lazy(() => import('../pages/admin/AdminProjects'));
+const AIManagement = lazy(() => import('../pages/admin/AIManagement'));
 //#endregion
 
 //#region User Pages
@@ -112,6 +113,10 @@ export function AppRouter() {
             <Route
               path="settings"
               element={<AdminWrap permission="admin:settings" component={<AdminSettings />} />}
+            />
+            <Route
+              path="ai"
+              element={<AdminWrap permission="admin:ai:access" component={<AIManagement />} />}
             />
           </Route>
 

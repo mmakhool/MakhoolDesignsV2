@@ -88,6 +88,8 @@
       "source.fixAll.eslint": "explicit",
       "source.organizeImports": "explicit"
     },
+    "editor.formatOnSave": false,
+    "prettier.enable": false,
     "files.watcherExclude": {
       "**/node_modules": true,
       "**/dist": true,
