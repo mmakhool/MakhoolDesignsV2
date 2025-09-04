@@ -4,6 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
 import { AuthContext } from './auth-context';
 
+// Utility function to check if JWT is expired
+const isJWTExpired = (token: string): boolean => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Date.now() / 1000;
+    return payload.exp < currentTime;
+  } catch {
+    return true; // If we can't decode, consider it expired
+  }
+};
+
 interface AuthState {
   user: User | null;
   tokens: AuthTokens | null;
@@ -96,25 +107,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const tokens: AuthTokens = JSON.parse(storedTokens);
           const user: User = JSON.parse(storedUser);
           
-          // Immediately set the auth state from localStorage
-          dispatch({
-            type: 'AUTH_SUCCESS',
-            payload: { user, tokens },
-          });
+          // Check if token is expired before setting auth state
+          const isTokenExpired = isJWTExpired(tokens.accessToken);
+          
+          if (isTokenExpired && tokens.refreshToken) {
+            try {
+              // Try to refresh the token
+              const response = await authApi.refreshToken(tokens.refreshToken);
+              const newTokens = {
+                accessToken: response.accessToken,
+                refreshToken: tokens.refreshToken,
+              };
+              
+              dispatch({
+                type: 'AUTH_SUCCESS',
+                payload: { user, tokens: newTokens },
+              });
+            } catch {
+              // Refresh failed, clear storage
+              localStorage.removeItem('auth_tokens');
+              localStorage.removeItem('auth_user');
+              dispatch({ type: 'LOGOUT' });
+              return;
+            }
+          } else if (!isTokenExpired) {
+            // Token is still valid, set auth state
+            dispatch({
+              type: 'AUTH_SUCCESS',
+              payload: { user, tokens },
+            });
+          } else {
+            // Token expired and no refresh token
+            localStorage.removeItem('auth_tokens');
+            localStorage.removeItem('auth_user');
+            dispatch({ type: 'LOGOUT' });
+            return;
+          }
 
-          // Then verify token is still valid by making a profile request
+          // Verify token is still valid by making a profile request
           try {
             const profileData = await authApi.getProfile();
-            // Update user data with fresh data from server
             dispatch({
               type: 'SET_USER',
               payload: profileData,
             });
           } catch {
-            // Token is invalid, clear storage and logout
-            localStorage.removeItem('auth_tokens');
-            localStorage.removeItem('auth_user');
-            dispatch({ type: 'LOGOUT' });
+            // Profile request failed, may need to refresh token again
+            if (tokens.refreshToken) {
+              try {
+                const response = await authApi.refreshToken(tokens.refreshToken);
+                const newTokens = {
+                  accessToken: response.accessToken,
+                  refreshToken: tokens.refreshToken,
+                };
+                
+                dispatch({
+                  type: 'AUTH_SUCCESS',
+                  payload: { user, tokens: newTokens },
+                });
+              } catch {
+                localStorage.removeItem('auth_tokens');
+                localStorage.removeItem('auth_user');
+                dispatch({ type: 'LOGOUT' });
+              }
+            } else {
+              localStorage.removeItem('auth_tokens');
+              localStorage.removeItem('auth_user');
+              dispatch({ type: 'LOGOUT' });
+            }
           }
         }
       } catch {
@@ -204,15 +264,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       const response = await authApi.refreshToken(state.tokens.refreshToken);
+      const newTokens = {
+        accessToken: response.accessToken,
+        refreshToken: state.tokens.refreshToken, // Keep existing refresh token
+      };
+      
       dispatch({
         type: 'AUTH_SUCCESS',
         payload: {
           user: state.user!,
-          tokens: response,
+          tokens: newTokens,
         },
       });
     } catch (error) {
+      // Clear tokens and redirect to login
+      localStorage.removeItem('auth_tokens');
+      localStorage.removeItem('auth_user');
       dispatch({ type: 'LOGOUT' });
+      navigate('/login');
       throw error;
     }
   };

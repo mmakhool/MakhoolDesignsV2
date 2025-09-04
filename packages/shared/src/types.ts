@@ -14,6 +14,7 @@ export type ContactFormData = z.infer<typeof ContactFormSchema>;
 export const LoginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional(),
 });
 
 export const RegisterSchema = z.object({

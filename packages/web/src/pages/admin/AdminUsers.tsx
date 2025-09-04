@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { CreateUserForm } from '../../components/forms/CreateUserForm';
 import { useActiveRoles, useCreateUser, useDeleteUser, useToggleUserActive, useUsers } from '../../hooks/useUsersApi';
@@ -28,7 +28,7 @@ interface CreateUserData {
   isActive: boolean;
 }
 
-export const AdminUsers: React.FC = () => {
+export const AdminUsers: React.FC = memo(() => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // API hooks
@@ -38,7 +38,7 @@ export const AdminUsers: React.FC = () => {
   const deleteUserMutation = useDeleteUser();
   const toggleUserActiveMutation = useToggleUserActive();
 
-  const handleCreateUser = async (userData: CreateUserData) => {
+  const handleCreateUser = useCallback(async (userData: CreateUserData) => {
     try {
       await createUserMutation.mutateAsync(userData);
       setIsCreateModalOpen(false);
@@ -46,9 +46,9 @@ export const AdminUsers: React.FC = () => {
       // Error is handled by the mutation hook
       console.error('Failed to create user:', error);
     }
-  };
+  }, [createUserMutation]);
 
-  const handleDeleteUser = async (userId: string, userName: string) => {
+  const handleDeleteUser = useCallback(async (userId: string, userName: string) => {
     if (window.confirm(`Are you sure you want to delete user "${userName}"?`)) {
       try {
         await deleteUserMutation.mutateAsync(userId);
@@ -56,26 +56,26 @@ export const AdminUsers: React.FC = () => {
         console.error('Failed to delete user:', error);
       }
     }
-  };
+  }, [deleteUserMutation]);
 
-  const handleToggleUserActive = async (userId: string) => {
+  const handleToggleUserActive = useCallback(async (userId: string) => {
     try {
       await toggleUserActiveMutation.mutateAsync(userId);
     } catch (error) {
       console.error('Failed to toggle user status:', error);
     }
-  };
+  }, [toggleUserActiveMutation]);
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = useMemo(() => (dateString?: string) => {
     if (!dateString) return 'Never';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
-  };
+  }, []);
 
-  const formatDateTime = (dateString?: string) => {
+  const formatDateTime = useMemo(() => (dateString?: string) => {
     if (!dateString) return 'Never';
     return new Date(dateString).toLocaleString('en-US', {
       year: 'numeric',
@@ -84,7 +84,7 @@ export const AdminUsers: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
+  }, []);
 
   const getRoleColor = (roleName: string) => {
     switch (roleName.toLowerCase()) {
@@ -275,6 +275,8 @@ export const AdminUsers: React.FC = () => {
       )}
     </main>
   );
-};
+});
+
+AdminUsers.displayName = 'AdminUsers';
 
 export default AdminUsers;

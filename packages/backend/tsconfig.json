@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ES2022",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -19,6 +19,8 @@
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": false,
     "paths": {
       "@makhool-designs/shared": ["../../packages/shared/src/index.ts"],
       "@makhool-designs/shared/*": ["../../packages/shared/src/*"],

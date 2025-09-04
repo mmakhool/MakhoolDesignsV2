@@ -50,13 +50,15 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<User | null> {
+    // Add timing attack protection
     const user = await this.usersService.findByEmail(email);
-
-    if (
-      user &&
-      user.password &&
-      (await bcrypt.compare(password, user.password))
-    ) {
+    const dummyHash = '$2b$10$abcdefghijklmnopqrstuvwxyz1234567890';
+    
+    // Always perform bcrypt comparison to prevent timing attacks
+    const passwordToCompare = user?.password || dummyHash;
+    const isValidPassword = await bcrypt.compare(password, passwordToCompare);
+    
+    if (user && user.password && isValidPassword) {
       return user;
     }
 

@@ -1,7 +1,9 @@
 import type { ReactElement } from 'react';
 import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoadingView } from '../components/LoadingView';
+import { RequireAuth } from '../components/RequireAuth';
+import { useAuth } from '../hooks/useAuth';
 import { AdminLayout } from '../layouts/AdminLayout';
 import DefaultLayout from '../layouts/DefaultLayout';
 
@@ -33,40 +35,39 @@ const UserSettings = lazy(() => import('../pages/user/UserSettings'));
 //#endregion
 
 // Access Denied component
-/*function AccessDeniedPage() {
+function AccessDeniedPage() {
   return (
     <div className="flex h-full w-full items-center justify-center">
       <div className="text-red-700 dark:text-red-400">Access Denied</div>
     </div>
   );
-}*/
+}
 
 // Admin wrapper for protected routes
 function AdminWrap(props: { component: ReactElement; permission?: string | string[] }) {
-  // TODO: Implement permission checking when auth is added
-  // For now, just return the component
-  return props.component;
+  const { state } = useAuth();
   
-  // Future implementation:
-  // return (
-  //   <RequirePermission permission={props.permission} fallback={<AccessDeniedPage />}>
-  //     {props.component}
-  //   </RequirePermission>
-  // );
+  // Check if user is authenticated
+  if (!state.isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+  
+  // Check if user has admin role
+  const isAdmin = state.user?.role?.name === 'sysadmin' || state.user?.role?.name === 'sysmanager';
+  if (!isAdmin) {
+    return <AccessDeniedPage />;
+  }
+  
+  return props.component;
 }
 
 // Auth wrapper for protected routes
 function AuthWrap(props: { component: ReactElement }) {
-  // TODO: Implement auth checking when auth is added
-  // For now, just return the component
-  return props.component;
-  
-  // Future implementation:
-  // return (
-  //   <RequireAuth fallback={<Navigate to="/login" />}>
-  //     {props.component}
-  //   </RequireAuth>
-  // );
+  return (
+    <RequireAuth fallback={<Navigate to="/login" />}>
+      {props.component}
+    </RequireAuth>
+  );
 }
 
 export function AppRouter() {

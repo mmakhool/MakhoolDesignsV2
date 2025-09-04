@@ -16,11 +16,10 @@ const NAVIGATION_ITEMS = [
 
 const DefaultLayout: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const { logout } = useAuth();
+  const { state, logout } = useAuth();
   
-  // Temporarily enable admin access for testing
-  const isAuthenticated = true; // state.isAuthenticated;
-  const isAdmin = true; // state.user?.role?.name === 'sysadmin' || state.user?.role?.name === 'sysmanager';
+  const isAuthenticated = state.isAuthenticated;
+  const isAdmin = state.user?.role?.name === 'sysadmin' || state.user?.role?.name === 'sysmanager';
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -56,6 +55,7 @@ const DefaultLayout: React.FC = () => {
           userMenuItems={USER_MENU_ITEMS}
           adminMenuItems={ADMIN_MENU_ITEMS}
         />
+        
         
         {/* Main content area with proper padding for fixed navigation */}
         <div className="pt-16">

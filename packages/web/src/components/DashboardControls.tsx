@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDashboard } from '../contexts/DashboardContext';
+import type { Widget } from '../contexts/DashboardContext';
 
 export const DashboardControls: React.FC = () => {
   const {
@@ -17,8 +18,8 @@ export const DashboardControls: React.FC = () => {
   const [exportText, setExportText] = useState('');
   const [importError, setImportError] = useState('');
 
-  const visibleWidgets = layout.widgets.filter(w => w.isVisible);
-  const hiddenWidgets = layout.widgets.filter(w => !w.isVisible);
+  const visibleWidgets = layout.widgets.filter((w: Widget) => w.isVisible);
+  const hiddenWidgets = layout.widgets.filter((w: Widget) => !w.isVisible);
 
   const handleExport = () => {
     const exported = exportLayout();
@@ -130,7 +131,7 @@ export const DashboardControls: React.FC = () => {
             Hidden Widgets ({hiddenWidgets.length})
           </h4>
           <div className="flex flex-wrap gap-2">
-            {hiddenWidgets.map(widget => (
+            {hiddenWidgets.map((widget: Widget) => (
               <button
                 key={widget.id}
                 onClick={() => updateWidgetVisibility(widget.id, true)}

@@ -89,14 +89,14 @@ export class UserSessionService {
    * Refresh a session with new tokens
    */
   async refreshSession(
-    refreshToken: string,
+    sessionId: string,
     newAccessToken: string,
     newRefreshToken: string,
     newExpiresAt: Date
   ): Promise<UserSession> {
-    const session = await this.findByRefreshToken(refreshToken);
+    const session = await this.sessionRepository.findOne(sessionId);
     if (!session) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException('Invalid session');
     }
 
     session.accessToken = newAccessToken;
@@ -109,10 +109,21 @@ export class UserSessionService {
   }
 
   /**
-   * Invalidate a specific session
+   * Invalidate a specific session by access token
    */
   async invalidateSession(accessToken: string): Promise<void> {
     const session = await this.sessionRepository.findOne({ accessToken });
+    if (session) {
+      session.isActive = false;
+      await this.em.flush();
+    }
+  }
+
+  /**
+   * Invalidate a specific session by session ID
+   */
+  async invalidateSessionById(sessionId: string): Promise<void> {
+    const session = await this.sessionRepository.findOne(sessionId);
     if (session) {
       session.isActive = false;
       await this.em.flush();

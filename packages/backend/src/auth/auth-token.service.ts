@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as crypto from 'crypto';
 import { User } from '../entities/user.entity';
 
 export interface JwtPayload {
   sub: string; // user id
   email: string;
   role: string;
+  type?: 'access' | 'refresh';
+  sessionId?: string;
   iat?: number;
   exp?: number;
 }
@@ -23,11 +26,14 @@ export class AuthTokenService {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
-      role: user.role.name
+      role: user.role.name,
+      iat: Math.floor(Date.now() / 1000),
+      // Add session identifier for better tracking
+      sessionId: crypto.randomBytes(16).toString('hex')
     };
 
     return this.jwtService.sign(payload, {
-      expiresIn: '1h' // Access token expires in 1 hour
+      expiresIn: '15m' // Shorter access token expiration for better security
     });
   }
 
@@ -35,12 +41,20 @@ export class AuthTokenService {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
-      role: user.role.name
+      role: user.role.name,
+      type: 'refresh',
+      iat: Math.floor(Date.now() / 1000)
     };
+
+    // Ensure refresh secret is different from access token secret
+    const refreshSecret = process.env.JWT_REFRESH_SECRET;
+    if (!refreshSecret || refreshSecret === process.env.JWT_SECRET) {
+      throw new Error('JWT_REFRESH_SECRET must be set and different from JWT_SECRET');
+    }
 
     return this.jwtService.sign(payload, {
       expiresIn: '7d', // Refresh token expires in 7 days
-      secret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+      secret: refreshSecret
     });
   }
 

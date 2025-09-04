@@ -1,6 +1,13 @@
 import { type AuthResponse, type ContactFormData, type LoginData, type RegisterData } from '@makhool-designs/shared';
 import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 
+// Extend AxiosRequestConfig to include retry flag
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    _retry?: boolean;
+  }
+}
+
 // API Client Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -32,21 +39,55 @@ apiClient.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response interceptor for handling errors
+// Response interceptor for handling errors and token refresh
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access - redirect to login or refresh token
+  async (error: AxiosError) => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
       const storedTokens = localStorage.getItem('auth_tokens');
       if (storedTokens) {
-        // Clear invalid tokens
-        localStorage.removeItem('auth_tokens');
-        localStorage.removeItem('auth_user');
-        // Redirect to login
-        window.location.href = '/login';
+        try {
+          const tokens = JSON.parse(storedTokens);
+          if (tokens.refreshToken) {
+            // Try to refresh the token
+            const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ refreshToken: tokens.refreshToken }),
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              const newTokens = {
+                accessToken: data.accessToken,
+                refreshToken: tokens.refreshToken,
+              };
+              
+              // Update stored tokens
+              localStorage.setItem('auth_tokens', JSON.stringify(newTokens));
+              
+              // Update the authorization header and retry the original request
+              originalRequest.headers!.Authorization = `Bearer ${newTokens.accessToken}`;
+              return apiClient(originalRequest);
+            }
+          }
+        } catch {
+          // Refresh failed
+        }
       }
+      
+      // Clear invalid tokens and redirect to login
+      localStorage.removeItem('auth_tokens');
+      localStorage.removeItem('auth_user');
+      window.location.href = '/login';
     }
+    
     return Promise.reject(error);
   }
 );
