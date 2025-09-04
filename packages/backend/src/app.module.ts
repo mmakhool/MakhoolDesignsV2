@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ContactModule } from './contact/contact.module';
 import { DatabaseModule } from './database/database.module';
+import { PermissionsModule } from './permissions/permissions.module';
 import { ProjectsModule } from './projects/projects.module';
 import { RolesModule } from './roles/roles.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -33,6 +34,7 @@ import { UsersModule } from './users/users.module';
     }]),
     DatabaseModule,
     ContactModule,
+    PermissionsModule,
     ProjectsModule,
     RolesModule,
     UsersModule,

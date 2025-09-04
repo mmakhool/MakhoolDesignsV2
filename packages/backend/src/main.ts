@@ -15,7 +15,11 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:5173',
+      'http://localhost:5174', // Allow backup port
+      'http://localhost:5175'  // Allow another backup port
+    ],
     credentials: true // Important: allows cookies to be sent with requests
   });
 

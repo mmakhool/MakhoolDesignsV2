@@ -33,7 +33,7 @@ export interface AuthResponse {
     username: string;
     role: {
       id: string;
-      name: RoleType;
+      name: string;
       description?: string;
     };
   };

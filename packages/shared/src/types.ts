@@ -51,6 +51,22 @@ export const UpdateUserSchema = z.object({
 export type CreateUserData = z.infer<typeof CreateUserSchema>;
 export type UpdateUserData = z.infer<typeof UpdateUserSchema>;
 
+// Role management schemas
+export const CreateRoleSchema = z.object({
+  name: z.string().min(1, 'Role name is required'),
+  description: z.string().optional(),
+  permissionNames: z.array(z.string()).min(1, 'At least one permission is required'),
+});
+
+export const UpdateRoleSchema = z.object({
+  name: z.string().min(1, 'Role name is required').optional(),
+  description: z.string().optional(),
+  permissionNames: z.array(z.string()).min(1, 'At least one permission is required').optional(),
+});
+
+export type CreateRoleData = z.infer<typeof CreateRoleSchema>;
+export type UpdateRoleData = z.infer<typeof UpdateRoleSchema>;
+
 // User and Role types
 export enum RoleType {
   SYSADMIN = 'sysadmin',
@@ -58,10 +74,23 @@ export enum RoleType {
   USER = 'user',
 }
 
+export interface Permission {
+  id: string;
+  name: string;
+  description?: string;
+  isActive?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export interface Role {
   id: string;
-  name: RoleType;
+  name: string;
   description?: string;
+  permissions?: Permission[];
+  isActive?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface User {

@@ -1,4 +1,4 @@
-import { type ContactFormData, type LoginData, type RegisterData } from '@makhool-designs/shared';
+import { type ContactFormData, type LoginData, type RegisterData, type CreateRoleData, type UpdateRoleData } from '@makhool-designs/shared';
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
 // API Client Configuration
@@ -13,7 +13,7 @@ export const apiClient = axios.create({
   withCredentials: true, // Important: sends cookies with requests
 });
 
-// Simple response interceptor for error handling
+// Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
@@ -122,6 +122,26 @@ export const rolesApi = {
   },
   getActiveRoles: async () => {
     const response = await apiClient.get('/api/roles/active');
+    return response.data;
+  },
+  createRole: async (data: CreateRoleData) => {
+    const response = await apiClient.post('/api/roles', data);
+    return response.data;
+  },
+  updateRole: async (id: string, data: UpdateRoleData) => {
+    const response = await apiClient.put(`/api/roles/${id}`, data);
+    return response.data;
+  },
+  deleteRole: async (id: string) => {
+    const response = await apiClient.delete(`/api/roles/${id}`);
+    return response.data;
+  },
+};
+
+// Permissions API
+export const permissionsApi = {
+  getAllPermissions: async () => {
+    const response = await apiClient.get('/api/permissions');
     return response.data;
   },
 };
