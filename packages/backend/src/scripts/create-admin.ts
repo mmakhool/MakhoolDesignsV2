@@ -25,13 +25,23 @@ async function createAdmin() {
 
     // Check if admin user already exists
     const existingAdmin = await em.findOne(User, {
-      email: 'admin@makhool.com'
+      email: 'mmakhool@gmail.com'
     });
 
     if (existingAdmin) {
-      console.log('Admin user already exists!');
-      console.log('Email: admin@makhool.com');
-      console.log('You can reset the password if needed.');
+      console.log('Admin user already exists with email mmakhool@gmail.com!');
+      console.log('Updating password to admin123...');
+      
+      // Update the password
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      existingAdmin.password = hashedPassword;
+      existingAdmin.isActive = true;
+      em.persist(existingAdmin);
+      await em.flush();
+      
+      console.log('✅ Admin password updated successfully!');
+      console.log('📧 Email: mmakhool@gmail.com');
+      console.log('🔑 Password: admin123');
       await orm.close();
       return;
     }
@@ -49,10 +59,10 @@ async function createAdmin() {
     const hashedPassword = await bcrypt.hash('admin123', 10);
 
     const adminUser = new User(
-      'Admin',
-      'User',
-      'admin@makhool.com',
-      'admin',
+      'Mick',
+      'Makhool',
+      'mmakhool@gmail.com',
+      'mmakhool',
       adminRole
     );
     adminUser.password = hashedPassword;
@@ -62,9 +72,9 @@ async function createAdmin() {
     await em.flush();
 
     console.log('✅ Admin user created successfully!');
-    console.log('📧 Email: admin@makhool.com');
+    console.log('📧 Email: mmakhool@gmail.com');
     console.log('🔑 Password: admin123');
-    console.log('👤 Username: admin');
+    console.log('👤 Username: mmakhool');
     console.log('');
     console.log('You can now log in using these credentials.');
   } catch (error) {
