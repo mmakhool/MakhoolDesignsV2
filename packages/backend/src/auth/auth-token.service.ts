@@ -33,7 +33,7 @@ export class AuthTokenService {
     };
 
     return this.jwtService.sign(payload, {
-      expiresIn: '15m' // Shorter access token expiration for better security
+      expiresIn: '1h' // Increased to 1 hour to reduce token refresh frequency
     });
   }
 

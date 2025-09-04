@@ -1,12 +1,5 @@
-import { type AuthResponse, type ContactFormData, type LoginData, type RegisterData } from '@makhool-designs/shared';
-import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
-
-// Extend AxiosRequestConfig to include retry flag
-declare module 'axios' {
-  interface AxiosRequestConfig {
-    _retry?: boolean;
-  }
-}
+import { type ContactFormData, type LoginData, type RegisterData } from '@makhool-designs/shared';
+import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
 // API Client Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -17,75 +10,19 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 10000,
+  withCredentials: true, // Important: sends cookies with requests
 });
 
-// Request interceptor for adding auth tokens
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    // Add auth token here if needed
-    const storedTokens = localStorage.getItem('auth_tokens');
-    if (storedTokens) {
-      try {
-        const tokens = JSON.parse(storedTokens);
-        if (tokens.accessToken) {
-          config.headers.Authorization = `Bearer ${tokens.accessToken}`;
-        }
-      } catch {
-        // Invalid token data, ignore
-      }
-    }
-    return config;
-  },
-  (error: AxiosError) => Promise.reject(error)
-);
-
-// Response interceptor for handling errors and token refresh
+// Simple response interceptor for error handling
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      const storedTokens = localStorage.getItem('auth_tokens');
-      if (storedTokens) {
-        try {
-          const tokens = JSON.parse(storedTokens);
-          if (tokens.refreshToken) {
-            // Try to refresh the token
-            const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ refreshToken: tokens.refreshToken }),
-            });
-            
-            if (response.ok) {
-              const data = await response.json();
-              const newTokens = {
-                accessToken: data.accessToken,
-                refreshToken: tokens.refreshToken,
-              };
-              
-              // Update stored tokens
-              localStorage.setItem('auth_tokens', JSON.stringify(newTokens));
-              
-              // Update the authorization header and retry the original request
-              originalRequest.headers!.Authorization = `Bearer ${newTokens.accessToken}`;
-              return apiClient(originalRequest);
-            }
-          }
-        } catch {
-          // Refresh failed
-        }
+    // If we get 401, redirect to login (cookies are handled automatically)
+    if (error.response?.status === 401) {
+      // Only redirect if we're not already on the login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
       }
-      
-      // Clear invalid tokens and redirect to login
-      localStorage.removeItem('auth_tokens');
-      localStorage.removeItem('auth_user');
-      window.location.href = '/login';
     }
     
     return Promise.reject(error);
@@ -123,15 +60,15 @@ export const reviewsApi = {
 export const authApi = {
   login: async (data: LoginData) => {
     const response = await apiClient.post('/api/auth/login', data);
-    return response.data as AuthResponse;
+    return response.data; // Returns { user, message } - tokens are in HTTP-only cookies
   },
   register: async (data: RegisterData) => {
     const response = await apiClient.post('/api/auth/register', data);
-    return response.data as AuthResponse;
+    return response.data; // Returns { user, message } - tokens are in HTTP-only cookies
   },
-  refreshToken: async (refreshToken: string) => {
-    const response = await apiClient.post('/api/auth/refresh', { refreshToken });
-    return response.data;
+  refreshToken: async () => {
+    const response = await apiClient.post('/api/auth/refresh');
+    return response.data; // Returns { message } - new tokens are in HTTP-only cookies
   },
   getProfile: async () => {
     const response = await apiClient.get('/api/auth/profile');

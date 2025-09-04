@@ -1,7 +1,7 @@
 import {
-  ConflictException,
-  Injectable,
-  UnauthorizedException
+    ConflictException,
+    Injectable,
+    UnauthorizedException
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { RoleType } from '../entities/role.entity';
@@ -83,12 +83,13 @@ export class AuthService {
     const tokens = this.tokenService.generateTokens(user);
 
     // Create session record in database
-    const accessTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const accessTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour to match access token expiry
     await this.sessionService.createSession({
       user,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken || '',
-      expiresAt: accessTokenExpiry
+      expiresAt: accessTokenExpiry,
+      deactivateExistingSessions: true // Deactivate existing sessions on login
       // TODO: Add IP address and user agent from request context
     });
 
@@ -148,12 +149,13 @@ export class AuthService {
     const tokens = this.tokenService.generateTokens(user);
 
     // Create session record in database
-    const accessTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const accessTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour to match access token expiry
     await this.sessionService.createSession({
       user,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken || '',
-      expiresAt: accessTokenExpiry
+      expiresAt: accessTokenExpiry,
+      deactivateExistingSessions: true // Deactivate existing sessions on registration
       // TODO: Add IP address and user agent from request context
     });
 
@@ -193,7 +195,7 @@ export class AuthService {
       const newTokens = this.tokenService.generateTokens(user);
 
       // Update the session with new tokens
-      const accessTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      const accessTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour to match access token expiry
       await this.sessionService.refreshSession(
         session.id,
         newTokens.accessToken,

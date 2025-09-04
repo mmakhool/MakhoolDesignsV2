@@ -1,35 +1,35 @@
 import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Request,
-  UseGuards
+    Body,
+    Controller,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Post,
+    Request,
+    Response,
+    UnauthorizedException,
+    UseGuards
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiResponse,
-  ApiTags
+    ApiBearerAuth,
+    ApiBody,
+    ApiOperation,
+    ApiResponse,
+    ApiTags
 } from '@nestjs/swagger';
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { User } from '../entities/user.entity';
 import {
-  AuthResponse,
-  AuthService,
-  LoginDto,
-  RegisterDto
+    AuthResponse,
+    AuthService,
+    LoginDto,
+    RegisterDto
 } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
-interface AuthenticatedRequest {
+interface AuthenticatedRequest extends ExpressRequest {
   user: User;
-  headers?: {
-    authorization?: string;
-  };
 }
 
 @ApiTags('auth')
@@ -73,20 +73,45 @@ export class AuthController {
               }
             }
           }
-        },
-        tokens: {
-          type: 'object',
-          properties: {
-            accessToken: { type: 'string' },
-            refreshToken: { type: 'string' }
-          }
         }
       }
     }
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto): Promise<AuthResponse> {
-    return this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginDto,
+    @Response({ passthrough: true }) response: ExpressResponse
+  ) {
+    const authResponse: AuthResponse = await this.authService.login(loginDto);
+    
+    // Set JWT tokens as HTTP-only cookies
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Access token cookie (1 hour)
+    response.cookie('accessToken', authResponse.tokens.accessToken, {
+      httpOnly: true,
+      secure: isProduction, // HTTPS only in production
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 1000, // 1 hour
+      path: '/'
+    });
+    
+    // Refresh token cookie (7 days)
+    if (authResponse.tokens.refreshToken) {
+      response.cookie('refreshToken', authResponse.tokens.refreshToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/'
+      });
+    }
+    
+    // Return only user data (no tokens in response body)
+    return {
+      user: authResponse.user,
+      message: 'Login successful'
+    };
   }
 
   @Post('register')
@@ -109,25 +134,84 @@ export class AuthController {
     description: 'Registration successful'
   })
   @ApiResponse({ status: 409, description: 'Email or username already exists' })
-  async register(@Body() registerDto: RegisterDto): Promise<AuthResponse> {
-    return this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Response({ passthrough: true }) response: ExpressResponse
+  ) {
+    const authResponse: AuthResponse = await this.authService.register(registerDto);
+    
+    // Set JWT tokens as HTTP-only cookies
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Access token cookie (1 hour)
+    response.cookie('accessToken', authResponse.tokens.accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 1000, // 1 hour
+      path: '/'
+    });
+    
+    // Refresh token cookie (7 days)
+    if (authResponse.tokens.refreshToken) {
+      response.cookie('refreshToken', authResponse.tokens.refreshToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/'
+      });
+    }
+    
+    // Return only user data
+    return {
+      user: authResponse.user,
+      message: 'Registration successful'
+    };
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh access token' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        refreshToken: { type: 'string' }
-      }
-    }
-  })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  async refreshToken(@Body('refreshToken') refreshToken: string) {
-    return this.authService.refreshToken(refreshToken);
+  async refreshToken(
+    @Request() req: ExpressRequest,
+    @Response({ passthrough: true }) response: ExpressResponse
+  ) {
+    // Get refresh token from HTTP-only cookie
+    const refreshToken = (req.cookies as Record<string, string>)?.refreshToken;
+    
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+    
+    const newTokens = await this.authService.refreshToken(refreshToken);
+    
+    // Set new tokens as HTTP-only cookies
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Access token cookie (1 hour)
+    response.cookie('accessToken', newTokens.accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 1000, // 1 hour
+      path: '/'
+    });
+    
+    // Refresh token cookie (7 days) - only if new refresh token provided
+    if (newTokens.refreshToken) {
+      response.cookie('refreshToken', newTokens.refreshToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/'
+      });
+    }
+    
+    return { message: 'Token refreshed successfully' };
   }
 
   @Get('profile')
@@ -163,13 +247,22 @@ export class AuthController {
   @ApiOperation({ summary: 'Logout user and invalidate session' })
   @ApiResponse({ status: 200, description: 'Successfully logged out' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async logout(@Request() req: AuthenticatedRequest) {
-    // Extract token from Authorization header
-    const authorization = req.headers?.['authorization'] as string;
-    if (authorization && authorization.startsWith('Bearer ')) {
-      const accessToken = authorization.substring(7);
+  async logout(
+    @Request() req: AuthenticatedRequest,
+    @Response({ passthrough: true }) response: ExpressResponse
+  ) {
+    // Extract token from cookies or Authorization header (for backward compatibility)
+    const accessToken = 
+      (req.cookies as Record<string, string>)?.accessToken || 
+      (req.headers?.['authorization'] as string)?.substring(7);
+    
+    if (accessToken) {
       await this.authService.logout(accessToken);
     }
+
+    // Clear HTTP-only cookies
+    response.clearCookie('accessToken', { path: '/' });
+    response.clearCookie('refreshToken', { path: '/' });
 
     return { message: 'Successfully logged out' };
   }

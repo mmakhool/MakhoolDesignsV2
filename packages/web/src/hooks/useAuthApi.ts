@@ -48,11 +48,12 @@ export const useRegisterMutation = () => {
 };
 
 // API Hook for getting user profile
-export const useProfileQuery = () => {
+// API Hook for getting user profile (to check if still authenticated)
+export const useUserProfile = () => {
   return useQuery({
-    queryKey: ['auth', 'profile'],
-    queryFn: () => authApi.getProfile(),
-    enabled: !!localStorage.getItem('auth_tokens'), // Only fetch if logged in
+    queryKey: ['userProfile'],
+    queryFn: authApi.getProfile,
+    enabled: false, // Only fetch when explicitly requested
     retry: false, // Don't retry on auth failures
   });
 };
@@ -60,23 +61,14 @@ export const useProfileQuery = () => {
 // API Hook for refreshing token
 export const useRefreshTokenMutation = () => {
   return useMutation({
-    mutationFn: (refreshToken: string) => authApi.refreshToken(refreshToken),
-    onSuccess: (response) => {
-      // Update stored tokens
-      const currentTokens = localStorage.getItem('auth_tokens');
-      if (currentTokens) {
-        const tokens = JSON.parse(currentTokens);
-        localStorage.setItem('auth_tokens', JSON.stringify({
-          accessToken: response.accessToken,
-          refreshToken: tokens.refreshToken,
-        }));
-      }
+    mutationFn: () => authApi.refreshToken(), // No parameters needed - cookies handled automatically
+    onSuccess: () => {
+      // Tokens are automatically updated in HTTP-only cookies
+      console.log('✅ Token refresh successful');
     },
     onError: () => {
-      // Refresh failed, clear auth data and redirect
-      localStorage.removeItem('auth_tokens');
-      localStorage.removeItem('auth_user');
-      window.location.href = '/login';
+      // Clear any local state and redirect to login
+      console.log('❌ Token refresh failed');
     },
   });
 };

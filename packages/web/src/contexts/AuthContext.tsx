@@ -1,23 +1,11 @@
-import { type AuthResponse, type AuthTokens, type LoginData, type RegisterData, type User } from '@makhool-designs/shared';
-import React, { useEffect, useReducer, type ReactNode } from 'react';
+import { type LoginData, type RegisterData, type User } from '@makhool-designs/shared';
+import React, { useEffect, useReducer, useRef, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
 import { AuthContext } from './auth-context';
 
-// Utility function to check if JWT is expired
-const isJWTExpired = (token: string): boolean => {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const currentTime = Date.now() / 1000;
-    return payload.exp < currentTime;
-  } catch {
-    return true; // If we can't decode, consider it expired
-  }
-};
-
 interface AuthState {
   user: User | null;
-  tokens: AuthTokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -25,7 +13,7 @@ interface AuthState {
 
 type AuthAction =
   | { type: 'AUTH_START' }
-  | { type: 'AUTH_SUCCESS'; payload: { user: User; tokens: AuthTokens } }
+  | { type: 'AUTH_SUCCESS'; payload: { user: User } }
   | { type: 'AUTH_ERROR'; payload: string }
   | { type: 'LOGOUT' }
   | { type: 'CLEAR_ERROR' }
@@ -45,7 +33,6 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isLoading: false,
         isAuthenticated: true,
         user: action.payload.user,
-        tokens: action.payload.tokens,
         error: null,
       };
     case 'AUTH_ERROR':
@@ -54,15 +41,14 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isLoading: false,
         isAuthenticated: false,
         user: null,
-        tokens: null,
         error: action.payload,
       };
     case 'LOGOUT':
       return {
         ...state,
+        isLoading: false,
         isAuthenticated: false,
         user: null,
-        tokens: null,
         error: null,
       };
     case 'CLEAR_ERROR':
@@ -82,9 +68,8 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 
 const initialState: AuthState = {
   user: null,
-  tokens: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true, // Start with loading true to prevent premature redirects
   error: null,
 };
 
@@ -95,119 +80,47 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const navigate = useNavigate();
+  const authRestoredRef = useRef(false); // Prevent multiple restoration attempts
 
-  // Load auth data from localStorage on app start
+  // Check authentication status on app start
   useEffect(() => {
-    const loadAuthFromStorage = async () => {
+    const checkAuthStatus = async () => {
+      // Prevent multiple restoration attempts
+      if (authRestoredRef.current) {
+        console.log('🔒 Auth check already attempted, skipping...');
+        return;
+      }
+      
+      authRestoredRef.current = true;
+      console.log('🔄 Checking authentication status...');
+      dispatch({ type: 'AUTH_START' });
+      
       try {
-        const storedTokens = localStorage.getItem('auth_tokens');
-        const storedUser = localStorage.getItem('auth_user');
-        
-        if (storedTokens && storedUser) {
-          const tokens: AuthTokens = JSON.parse(storedTokens);
-          const user: User = JSON.parse(storedUser);
-          
-          // Check if token is expired before setting auth state
-          const isTokenExpired = isJWTExpired(tokens.accessToken);
-          
-          if (isTokenExpired && tokens.refreshToken) {
-            try {
-              // Try to refresh the token
-              const response = await authApi.refreshToken(tokens.refreshToken);
-              const newTokens = {
-                accessToken: response.accessToken,
-                refreshToken: tokens.refreshToken,
-              };
-              
-              dispatch({
-                type: 'AUTH_SUCCESS',
-                payload: { user, tokens: newTokens },
-              });
-            } catch {
-              // Refresh failed, clear storage
-              localStorage.removeItem('auth_tokens');
-              localStorage.removeItem('auth_user');
-              dispatch({ type: 'LOGOUT' });
-              return;
-            }
-          } else if (!isTokenExpired) {
-            // Token is still valid, set auth state
-            dispatch({
-              type: 'AUTH_SUCCESS',
-              payload: { user, tokens },
-            });
-          } else {
-            // Token expired and no refresh token
-            localStorage.removeItem('auth_tokens');
-            localStorage.removeItem('auth_user');
-            dispatch({ type: 'LOGOUT' });
-            return;
-          }
-
-          // Verify token is still valid by making a profile request
-          try {
-            const profileData = await authApi.getProfile();
-            dispatch({
-              type: 'SET_USER',
-              payload: profileData,
-            });
-          } catch {
-            // Profile request failed, may need to refresh token again
-            if (tokens.refreshToken) {
-              try {
-                const response = await authApi.refreshToken(tokens.refreshToken);
-                const newTokens = {
-                  accessToken: response.accessToken,
-                  refreshToken: tokens.refreshToken,
-                };
-                
-                dispatch({
-                  type: 'AUTH_SUCCESS',
-                  payload: { user, tokens: newTokens },
-                });
-              } catch {
-                localStorage.removeItem('auth_tokens');
-                localStorage.removeItem('auth_user');
-                dispatch({ type: 'LOGOUT' });
-              }
-            } else {
-              localStorage.removeItem('auth_tokens');
-              localStorage.removeItem('auth_user');
-              dispatch({ type: 'LOGOUT' });
-            }
-          }
-        }
+        // Try to get user profile - if cookies are valid, this will succeed
+        const user = await authApi.getProfile();
+        console.log('✅ User authenticated, cookies valid');
+        dispatch({
+          type: 'AUTH_SUCCESS',
+          payload: { user },
+        });
       } catch {
-        // Invalid stored data, clear it
-        localStorage.removeItem('auth_tokens');
-        localStorage.removeItem('auth_user');
+        console.log('👤 User not authenticated or cookies expired');
         dispatch({ type: 'LOGOUT' });
       }
     };
 
-    loadAuthFromStorage();
+    checkAuthStatus();
   }, []);
-
-  // Update localStorage when auth state changes
-  useEffect(() => {
-    if (state.isAuthenticated && state.user && state.tokens) {
-      localStorage.setItem('auth_tokens', JSON.stringify(state.tokens));
-      localStorage.setItem('auth_user', JSON.stringify(state.user));
-    } else {
-      localStorage.removeItem('auth_tokens');
-      localStorage.removeItem('auth_user');
-    }
-  }, [state.isAuthenticated, state.user, state.tokens]);
 
   const login = async (data: LoginData): Promise<void> => {
     dispatch({ type: 'AUTH_START' });
     try {
-      const response: AuthResponse = await authApi.login(data);
+      const response = await authApi.login(data);
+      console.log('✅ Login successful, cookies set');
       dispatch({
         type: 'AUTH_SUCCESS',
         payload: {
           user: response.user,
-          tokens: response.tokens,
         },
       });
     } catch (error) {
@@ -220,12 +133,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (data: RegisterData): Promise<void> => {
     dispatch({ type: 'AUTH_START' });
     try {
-      const response: AuthResponse = await authApi.register(data);
+      const response = await authApi.register(data);
+      console.log('✅ Registration successful, cookies set');
       dispatch({
         type: 'AUTH_SUCCESS',
         payload: {
           user: response.user,
-          tokens: response.tokens,
         },
       });
     } catch (error) {
@@ -237,17 +150,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async (): Promise<void> => {
     try {
-      // Call backend logout endpoint if user is authenticated
+      // Call backend logout endpoint to clear cookies
       if (state.isAuthenticated) {
         await authApi.logout();
       }
+      console.log('🗑️ Logout successful, cookies cleared');
     } catch (error) {
       // Even if logout fails on backend, clear local state
       console.error('Logout error:', error);
     } finally {
       dispatch({ type: 'LOGOUT' });
-      localStorage.removeItem('auth_tokens');
-      localStorage.removeItem('auth_user');
       // Navigate to home page after logout
       navigate('/');
     }
@@ -258,28 +170,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const refreshToken = async (): Promise<void> => {
-    if (!state.tokens?.refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
     try {
-      const response = await authApi.refreshToken(state.tokens.refreshToken);
-      const newTokens = {
-        accessToken: response.accessToken,
-        refreshToken: state.tokens.refreshToken, // Keep existing refresh token
-      };
-      
+      await authApi.refreshToken();
+      console.log('🔄 Token refresh successful');
+      // Get updated user profile after refresh
+      const user = await authApi.getProfile();
       dispatch({
         type: 'AUTH_SUCCESS',
-        payload: {
-          user: state.user!,
-          tokens: newTokens,
-        },
+        payload: { user },
       });
     } catch (error) {
-      // Clear tokens and redirect to login
-      localStorage.removeItem('auth_tokens');
-      localStorage.removeItem('auth_user');
+      console.log('❌ Token refresh failed');
       dispatch({ type: 'LOGOUT' });
       navigate('/login');
       throw error;

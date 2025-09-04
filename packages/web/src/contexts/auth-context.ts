@@ -1,9 +1,8 @@
-import { type AuthTokens, type LoginData, type RegisterData, type User } from '@makhool-designs/shared';
+import { type LoginData, type RegisterData, type User } from '@makhool-designs/shared';
 import { createContext } from 'react';
 
 interface AuthState {
   user: User | null;
-  tokens: AuthTokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;

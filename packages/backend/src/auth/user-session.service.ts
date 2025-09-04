@@ -12,6 +12,7 @@ export interface CreateSessionData {
   ipAddress?: string;
   userAgent?: string;
   expiresAt: Date;
+  deactivateExistingSessions?: boolean; // New optional parameter
 }
 
 @Injectable()
@@ -26,8 +27,10 @@ export class UserSessionService {
    * Create a new user session
    */
   async createSession(data: CreateSessionData): Promise<UserSession> {
-    // Deactivate existing sessions for the user (optional: limit concurrent sessions)
-    await this.deactivateUserSessions(data.user.id);
+    // Only deactivate existing sessions if explicitly requested (defaults to true for login/registration)
+    if (data.deactivateExistingSessions !== false) {
+      await this.deactivateUserSessions(data.user.id);
+    }
 
     const session = new UserSession(
       data.user,

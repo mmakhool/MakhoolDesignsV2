@@ -47,6 +47,11 @@ function AccessDeniedPage() {
 function AdminWrap(props: { component: ReactElement; permission?: string | string[] }) {
   const { state } = useAuth();
   
+  // Show loading while auth is being restored
+  if (state.isLoading) {
+    return <LoadingView />;
+  }
+  
   // Check if user is authenticated
   if (!state.isAuthenticated) {
     return <Navigate to="/login" />;

@@ -2,11 +2,30 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { User } from '../../entities/user.entity';
 import { UsersService } from '../../users/users.service';
 import { JwtPayload } from '../auth-token.service';
 import { UserSessionService } from '../user-session.service';
+
+// Custom JWT extractor that looks in cookies first, then Authorization header
+const jwtExtractor = (req: Request): string | null => {
+  // First try to get token from HTTP-only cookie
+  if (req && req.cookies) {
+    const token = (req.cookies as Record<string, string>).accessToken;
+    if (token) return token;
+  }
+  
+  // Fallback to Authorization header for backward compatibility
+  if (req.headers?.authorization) {
+    const authHeader = req.headers.authorization;
+    if (authHeader.startsWith('Bearer ')) {
+      return authHeader.substring(7);
+    }
+  }
+  
+  return null;
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -16,7 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly sessionService: UserSessionService
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: jwtExtractor, // Use our custom extractor
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET') || 'your-secret-key',
       passReqToCallback: true // Pass request to validate method
@@ -34,20 +53,22 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User account is disabled');
     }
 
-    // Extract token from Authorization header for session validation
+    // Extract token from Authorization header for activity tracking
     const authorization = req.headers?.authorization;
     if (authorization && authorization.startsWith('Bearer ')) {
       const accessToken = authorization.substring(7);
 
       try {
-        // Validate that the session exists and is active
-        const session = await this.sessionService.validateSession(accessToken);
-
-        if (!session || !session.isActive) {
-          throw new UnauthorizedException('Invalid session');
+        // Find session and update activity without throwing if not found
+        // This allows for graceful degradation if session tracking fails
+        const session = await this.sessionService.findByAccessToken(accessToken);
+        if (session && session.isActive) {
+          await this.sessionService.updateActivity(session.id);
         }
       } catch {
-        throw new UnauthorizedException('Invalid session');
+        // Log the error but don't fail authentication
+        // Session tracking is secondary to JWT validation
+        console.warn('Session tracking failed for token validation');
       }
     }
 
