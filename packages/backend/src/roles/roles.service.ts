@@ -2,7 +2,6 @@ import { EntityManager, EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable } from '@nestjs/common';
 import { Role, RoleType } from '../entities/role.entity';
-import { Permission } from '../entities/permission.entity';
 import { PermissionsService } from '../permissions/permissions.service';
 
 @Injectable()

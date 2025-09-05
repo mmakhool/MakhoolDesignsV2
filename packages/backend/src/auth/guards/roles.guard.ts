@@ -24,9 +24,9 @@ export class RolesGuard implements CanActivate {
       return true; // No roles required, allow access
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+     
     const request = context.switchToHttp().getRequest();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+     
     const user = request.user as User;
 
     if (!user) {
@@ -39,7 +39,7 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('User role not found');
     }
 
-    const hasRequiredRole = requiredRoles.some((role) => userRole === role);
+    const hasRequiredRole = requiredRoles.some((role) => userRole === role.toString());
 
     if (!hasRequiredRole) {
       throw new ForbiddenException(

@@ -67,6 +67,49 @@ export const UpdateRoleSchema = z.object({
 export type CreateRoleData = z.infer<typeof CreateRoleSchema>;
 export type UpdateRoleData = z.infer<typeof UpdateRoleSchema>;
 
+// Project types and enums
+export enum ProjectCategory {
+  WEB_DEVELOPMENT = 'web-development',
+  MOBILE_DEVELOPMENT = 'mobile-development',
+  DESIGN = 'design',
+  CONSULTING = 'consulting',
+  THREE_D_PRINTING = '3d-printing',
+}
+
+// Project management schemas
+export const CreateProjectSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(255, 'Title must be less than 255 characters'),
+  description: z.string().min(1, 'Description is required'),
+  imageUrl: z.string().url('Invalid image URL').optional(),
+  tags: z.array(z.string()).optional(),
+  images: z.array(z.string().url('Invalid image URL')).optional(),
+  category: z.nativeEnum(ProjectCategory),
+  featured: z.boolean().default(false).optional(),
+  isActive: z.boolean().default(true).optional(),
+  projectUrl: z.string().url('Invalid project URL').optional(),
+  githubUrl: z.string().url('Invalid GitHub URL').optional(),
+  technologies: z.string().optional(),
+  completedAt: z.date().optional(),
+});
+
+export const UpdateProjectSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(255, 'Title must be less than 255 characters').optional(),
+  description: z.string().min(1, 'Description is required').optional(),
+  imageUrl: z.string().url('Invalid image URL').optional(),
+  tags: z.array(z.string()).optional(),
+  images: z.array(z.string().url('Invalid image URL')).optional(),
+  category: z.nativeEnum(ProjectCategory).optional(),
+  featured: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+  projectUrl: z.string().url('Invalid project URL').optional(),
+  githubUrl: z.string().url('Invalid GitHub URL').optional(),
+  technologies: z.string().optional(),
+  completedAt: z.date().optional(),
+});
+
+export type CreateProjectData = z.infer<typeof CreateProjectSchema>;
+export type UpdateProjectData = z.infer<typeof UpdateProjectSchema>;
+
 // User and Role types
 export enum RoleType {
   SYSADMIN = 'sysadmin',
@@ -131,20 +174,18 @@ export interface Project {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
-  tags: string[];
+  imageUrl?: string;
+  tags?: string[];
+  images?: string[];
   category: ProjectCategory;
   featured: boolean;
+  isActive: boolean;
+  projectUrl?: string;
+  githubUrl?: string;
+  technologies?: string;
+  completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export enum ProjectCategory {
-  WEB_DEVELOPMENT = 'web-development',
-  MOBILE_DEVELOPMENT = 'mobile-development',
-  DESIGN = 'design',
-  CONSULTING = 'consulting',
-  THREE_D_PRINTING = '3d-printing',
 }
 
 // Review types

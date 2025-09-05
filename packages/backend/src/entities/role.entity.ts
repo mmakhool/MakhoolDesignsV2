@@ -33,7 +33,7 @@ export class Role {
 
   @ManyToMany(() => Permission, undefined, { 
     pivotTable: 'role_permissions',
-    eager: false 
+    eager: true 
   })
   permissions = new Collection<Permission>(this);
 
@@ -42,3 +42,4 @@ export class Role {
     this.description = description;
   }
 }
+

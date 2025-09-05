@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+ 
+ 
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
     Body,
@@ -132,3 +132,4 @@ export class UsersController {
     return this.usersService.update(id, { isActive: !user.isActive });
   }
 }
+

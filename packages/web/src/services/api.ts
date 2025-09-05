@@ -1,4 +1,4 @@
-import { type ContactFormData, type LoginData, type RegisterData, type CreateRoleData, type UpdateRoleData } from '@makhool-designs/shared';
+import { type ContactFormData, type LoginData, type RegisterData, type CreateRoleData, type UpdateRoleData, type CreateProjectData, type UpdateProjectData } from '@makhool-designs/shared';
 import axios, { type AxiosError, type AxiosResponse } from 'axios';
 
 // API Client Configuration
@@ -37,14 +37,42 @@ export const contactApi = {
   },
 };
 
-// Future API endpoints can be added here
+// Projects API
 export const projectsApi = {
-  getProjects: async () => {
+  getAllProjects: async () => {
     const response = await apiClient.get('/api/projects');
+    return response.data;
+  },
+  getActiveProjects: async () => {
+    const response = await apiClient.get('/api/projects/active');
+    return response.data;
+  },
+  getFeaturedProjects: async () => {
+    const response = await apiClient.get('/api/projects/featured');
     return response.data;
   },
   getProject: async (id: string) => {
     const response = await apiClient.get(`/api/projects/${id}`);
+    return response.data;
+  },
+  createProject: async (data: CreateProjectData) => {
+    const response = await apiClient.post('/api/projects', data);
+    return response.data;
+  },
+  updateProject: async (id: string, data: UpdateProjectData) => {
+    const response = await apiClient.put(`/api/projects/${id}`, data);
+    return response.data;
+  },
+  deleteProject: async (id: string) => {
+    const response = await apiClient.delete(`/api/projects/${id}`);
+    return response.data;
+  },
+  toggleProjectFeatured: async (id: string) => {
+    const response = await apiClient.put(`/api/projects/${id}/toggle-featured`);
+    return response.data;
+  },
+  toggleProjectActive: async (id: string) => {
+    const response = await apiClient.put(`/api/projects/${id}/toggle-active`);
     return response.data;
   },
 };

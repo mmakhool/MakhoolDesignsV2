@@ -18,11 +18,11 @@ export const useSubmitContact = () => {
   });
 };
 
-// Projects Hooks
+// Projects Hooks - Basic hooks (consider using useProjectsApi.ts for more advanced functionality)
 export const useProjects = () => {
   return useQuery({
     queryKey: ['projects'],
-    queryFn: projectsApi.getProjects,
+    queryFn: projectsApi.getAllProjects,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });

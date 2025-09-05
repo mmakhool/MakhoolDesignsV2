@@ -75,7 +75,7 @@ export class AuthTokenService {
 
   decodeToken(token: string): JwtPayload | null {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+       
       const decoded = this.jwtService.decode(token);
       if (typeof decoded === 'object' && decoded !== null) {
         return decoded as JwtPayload;

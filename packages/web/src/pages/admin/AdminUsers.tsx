@@ -1,7 +1,9 @@
 import React, { useState, memo, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { CreateUserForm } from '../../components/forms/CreateUserForm';
-import { useActiveRoles, useCreateUser, useDeleteUser, useToggleUserActive, useUsers } from '../../hooks/useUsersApi';
+import { EditUserForm } from '../../components/forms/EditUserForm';
+import { useActiveRoles, useCreateUser, useDeleteUser, useToggleUserActive, useUpdateUser, useUsers } from '../../hooks/useUsersApi';
+import type { UpdateUserData } from '@makhool-designs/shared';
 
 interface User {
   id: string;
@@ -30,11 +32,13 @@ interface CreateUserData {
 
 export const AdminUsers: React.FC = memo(() => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   // API hooks
   const { data: users = [], isLoading: usersLoading, error: usersError } = useUsers();
   const { data: roles = [], isLoading: rolesLoading } = useActiveRoles();
   const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
   const toggleUserActiveMutation = useToggleUserActive();
 
@@ -47,6 +51,22 @@ export const AdminUsers: React.FC = memo(() => {
       console.error('Failed to create user:', error);
     }
   }, [createUserMutation]);
+
+  const handleUpdateUser = useCallback(async (userData: UpdateUserData) => {
+    if (!editingUser) return;
+    
+    try {
+      await updateUserMutation.mutateAsync({ id: editingUser.id, data: userData });
+      setEditingUser(null);
+    } catch (error) {
+      // Error is handled by the mutation hook
+      console.error('Failed to update user:', error);
+    }
+  }, [updateUserMutation, editingUser]);
+
+  const handleEditUser = useCallback((user: User) => {
+    setEditingUser(user);
+  }, []);
 
   const handleDeleteUser = useCallback(async (userId: string, userName: string) => {
     if (window.confirm(`Are you sure you want to delete user "${userName}"?`)) {
@@ -228,8 +248,9 @@ export const AdminUsers: React.FC = memo(() => {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button 
+                                  onClick={() => handleEditUser(user)}
                                   className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
-                                  title="Edit user (coming soon)"
+                                  title="Edit user"
                                 >
                                   Edit
                                 </button>
@@ -271,6 +292,17 @@ export const AdminUsers: React.FC = memo(() => {
           onSubmit={handleCreateUser}
           onCancel={() => setIsCreateModalOpen(false)}
           isLoading={createUserMutation.isPending}
+        />
+      )}
+
+      {/* Edit User Modal */}
+      {editingUser && (
+        <EditUserForm
+          user={editingUser}
+          roles={roles}
+          onSubmit={handleUpdateUser}
+          onCancel={() => setEditingUser(null)}
+          isLoading={updateUserMutation.isPending}
         />
       )}
     </main>
